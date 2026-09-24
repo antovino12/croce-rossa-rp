@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -205,7 +206,7 @@
     <section id="sec-farmacia" class="hidden space-y-6">
       <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-600">
         <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center"><i class="fa-solid fa-prescription-bottle-medical text-blue-600 mr-2"></i> Farmacia Sanitaria CRI</h2>
-        <p class="text-gray-600 text-sm">Seleziona i farmaci o presidi medici disponibili ed effettua l'ordine per il ritiro o la consegna.</p>
+        <p class="text-gray-600 text-sm">Seleziona i farmaci o presidi medici disponibili ed effettua l'ordine. Visualizzerai subito il totale esatto da pagare in-game.</p>
       </div>
 
       <!-- Catalogo Farmaci -->
@@ -270,9 +271,9 @@
 
       <!-- STORICO SERVIZI DELL'OPERATORE -->
       <div class="bg-white p-6 rounded-lg shadow space-y-4">
-        <h3 class="font-bold text-gray-800 text-lg border-b pb-2 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800 text-lg border-b pb-2 flex items-center justify-between flex-wrap gap-2">
           <span><i class="fa-solid fa-clock-rotate-left text-cri-red mr-2"></i> Storico dei Miei Servizi / Turni</span>
-          <span id="op-ore-totali-badge" class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full">Totale: 0.0 ore</span>
+          <span id="op-ore-totali-badge" class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full">Totale: 0 ore e 0 min</span>
         </h3>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm border-collapse">
@@ -312,7 +313,7 @@
 
     <!-- DASHBOARD ADMIN -->
     <section id="sec-dash-admin" class="hidden space-y-6">
-      <div class="flex justify-between items-center bg-gray-800 text-white p-4 rounded-lg shadow">
+      <div class="flex justify-between items-center bg-gray-800 text-white p-4 rounded-lg shadow flex-wrap gap-2">
         <div>
           <h2 class="text-xl font-bold">Pannello Amministratore Generale</h2>
           <p class="text-xs text-gray-300">Sincronizzazione Cloud Firebase Attiva in Tempo Reale</p>
@@ -338,8 +339,8 @@
           <div id="stat-op-servizio" class="text-2xl font-bold text-gray-800 mt-1">0</div>
         </div>
         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-amber-600">
-          <div class="text-xs font-bold text-gray-500 uppercase">Ore Totali Turni</div>
-          <div id="stat-ore-totali" class="text-2xl font-bold text-gray-800 mt-1">0h</div>
+          <div class="text-xs font-bold text-gray-500 uppercase">Ore Totali Servizio</div>
+          <div id="stat-ore-totali" class="text-lg font-bold text-gray-800 mt-1">0 ore e 0 min</div>
         </div>
       </div>
 
@@ -363,7 +364,7 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600">Prezzo (€ o Valuta RP)</label>
-            <input type="text" id="farmaco-prezzo" required placeholder="Es. 25€" class="w-full border p-2 rounded text-sm mt-1">
+            <input type="text" id="farmaco-prezzo" required placeholder="Es. 50€" class="w-full border p-2 rounded text-sm mt-1">
           </div>
           <div class="md:col-span-2">
             <label class="block text-xs font-bold text-gray-600">Descrizione / Uso</label>
@@ -379,7 +380,7 @@
             <thead>
               <tr class="bg-gray-100 text-gray-700 border-b">
                 <th class="p-2">Nome Farmaco</th>
-                <th class="p-2">Prezzo</th>
+                <th class="p-2">Prezzo Unitario</th>
                 <th class="p-2">Descrizione</th>
                 <th class="p-2 text-right">Azioni</th>
               </tr>
@@ -401,6 +402,7 @@
                 <th class="p-2">Nome RP</th>
                 <th class="p-2">Tag Discord</th>
                 <th class="p-2">Farmaco &amp; Qta</th>
+                <th class="p-2">Totale In-Game</th>
                 <th class="p-2">Stato</th>
                 <th class="p-2 text-right">Azioni</th>
               </tr>
@@ -410,9 +412,13 @@
         </div>
       </div>
 
-      <!-- Gestione Operatori -->
+      <!-- Gestione Operatori & Reset Ore Settimanali -->
       <div class="bg-white p-6 rounded-lg shadow space-y-4">
-        <h3 class="font-bold text-gray-800 text-lg border-b pb-2"><i class="fa-solid fa-users text-cri-red mr-2"></i> Creazione e Gestione Operatori</h3>
+        <div class="border-b pb-2 flex justify-between items-center flex-wrap gap-2">
+          <h3 class="font-bold text-gray-800 text-lg"><i class="fa-solid fa-users text-cri-red mr-2"></i> Creazione e Gestione Operatori</h3>
+          <button onclick="resettaOreTuttiOp()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-1.5 rounded transition shadow"><i class="fa-solid fa-rotate-left mr-1"></i> Resetta Ore Settimanali Tutti</button>
+        </div>
+
         <form onsubmit="creaOperatore(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded border">
           <div>
             <label class="block text-xs font-bold text-gray-600">Nome Operatore</label>
@@ -446,7 +452,7 @@
                 <th class="p-2">Username</th>
                 <th class="p-2">Ruolo attuale</th>
                 <th class="p-2">Stato Pass</th>
-                <th class="p-2">Ore Totali</th>
+                <th class="p-2">Tempo Servizio Preciso</th>
                 <th class="p-2 text-right">Azioni / Promozioni</th>
               </tr>
             </thead>
@@ -480,12 +486,13 @@
 
   </main>
 
-  <!-- Modal Ordina Farmaco -->
+  <!-- Modal Ordina Farmaco con Calcolo Prezzo In-Game -->
   <div id="modal-ordina-farmaco" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4">
       <h3 class="text-lg font-bold text-gray-800 flex items-center"><i class="fa-solid fa-cart-shopping text-blue-600 mr-2"></i> Completa Ordine Farmaco</h3>
       <form onsubmit="confermaOrdineFarmaco(event)" class="space-y-3">
         <input type="hidden" id="ordina-farmaco-nome-hidden">
+        <input type="hidden" id="ordina-farmaco-prezzo-unitario-hidden">
         <div>
           <label class="block text-xs font-bold text-gray-600">Farmaco Selezionato</label>
           <input type="text" id="ordina-farmaco-display" disabled class="w-full border p-2 rounded text-sm mt-1 bg-gray-100 font-bold">
@@ -500,8 +507,15 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600">Quantità</label>
-          <input type="number" id="ordina-qta" value="1" min="1" max="20" required class="w-full border p-2 rounded text-sm mt-1">
+          <input type="number" id="ordina-qta" value="1" min="1" max="50" required oninput="aggiornaCalcoloTotaleFarmaco()" class="w-full border p-2 rounded text-sm mt-1">
         </div>
+        
+        <!-- Box Calcolo Prezzo In-Game -->
+        <div class="bg-blue-50 border border-blue-200 p-3 rounded text-center">
+          <span class="text-xs text-blue-800 uppercase font-bold tracking-wider block">Totale da Pagare In-Game</span>
+          <div id="ordina-totale-in-game-display" class="text-2xl font-black text-blue-700 mt-0.5">0 €</div>
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-gray-600">Note per la Consegna</label>
           <textarea id="ordina-note" rows="2" placeholder="Specifiche o luogo di ritiro..." class="w-full border p-2 rounded text-sm mt-1"></textarea>
@@ -598,6 +612,29 @@
     let sessioneCorrente = null;
     let timerInterval = null;
 
+    // Helper: Formattazione Tempo Preciso ed Esteso
+    function formattaTempoPreciso(secondiTotali) {
+      if (!secondiTotali || secondiTotali <= 0) return "0 ore e 0 min";
+      const h = Math.floor(secondiTotali / 3600);
+      const m = Math.floor((secondiTotali % 3600) / 60);
+      const s = secondiTotali % 60;
+
+      if (h > 0) {
+        return `${h} ${h === 1 ? 'ora' : 'ore'}${m > 0 ? ' e ' + m + ' min' : ''}`;
+      } else if (m > 0) {
+        return `${m} min${s > 0 ? ' e ' + s + ' sec' : ''}`;
+      } else {
+        return `${s} sec`;
+      }
+    }
+
+    // Helper: Estrazione Numero dal Prezzo
+    function estraiValoreNumericoPrezzo(prezzoStr) {
+      if (!prezzoStr) return 0;
+      const num = parseFloat(prezzoStr.toString().replace(/[^0-9.,]/g, '').replace(',', '.'));
+      return isNaN(num) ? 0 : num;
+    }
+
     // Inizializzazione Dark Mode
     if (localStorage.getItem('cri_dark_mode') === 'enabled') {
       document.documentElement.classList.add('dark');
@@ -661,7 +698,7 @@
       showSection('prenota');
     }
 
-    // VERIFICA STATO GENERALE (PRENOTAZIONE O FARMACIA)
+    // VERIFICA STATO GENERALE
     function verificaStatoGenerale() {
       const cod = document.getElementById('check-codice-input').value.trim().toUpperCase();
       const box = document.getElementById('esito-codice');
@@ -690,7 +727,7 @@
           if (o.stato === 'Annullato') colorClass = 'bg-red-100 text-red-800';
 
           box.classList.add(...colorClass.split(' '));
-          box.innerHTML = `<i class="fa-solid fa-pills mr-1"></i> Ordine Farmacia <strong>${o.codice}</strong> (${o.farmaco} x${o.qta}) per <strong>${o.nome}</strong>: <span class="uppercase font-bold">${o.stato}</span>`;
+          box.innerHTML = `<i class="fa-solid fa-pills mr-1"></i> Ordine Farmacia <strong>${o.codice}</strong> (${o.farmaco} x${o.qta}) - Totale: <strong>${o.totaleInGame || o.prezzoUnitario || '-'}</strong> - Stato: <span class="uppercase font-bold">${o.stato}</span>`;
           return;
         }
       }
@@ -739,7 +776,7 @@
             { name: "Tag Discord", value: p.discord, inline: true },
             { name: "Tipo Prestazione", value: p.tipo, inline: false },
             { name: "Data Preferita", value: p.dataPreferita, inline: true },
-            { name: "Orario Preferito", value: p.orarioPreferita || p.orarioPreferito, inline: true },
+            { name: "Orario Preferito", value: p.orarioPreferito || "Nessuna preferenza", inline: true },
             { name: "Note", value: p.note || "Nessuna nota", inline: false }
           ],
           footer: { text: "Portale CRI RP • Data: " + p.dataInvio }
@@ -757,7 +794,7 @@
       }
     }
 
-    // FARMACIA - CATALOGO E ORDINI
+    // FARMACIA - CATALOGO E ORDINI CON CALCOLO TOTALE
     function renderFarmaciaPubblica() {
       const container = document.getElementById('catalogo-farmaci-pubblico');
       if (!appData.farmacia || appData.farmacia.length === 0) {
@@ -770,21 +807,35 @@
           <div>
             <div class="flex justify-between items-start mb-2">
               <h4 class="font-bold text-lg text-gray-800">${f.nome}</h4>
-              <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">${f.prezzo}</span>
+              <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded">${f.prezzo}</span>
             </div>
             <p class="text-gray-600 text-xs mb-4">${f.descrizione || 'Nessuna descrizione.'}</p>
           </div>
-          <button onclick="apriModalOrdinaFarmaco('${f.nome}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm transition flex items-center justify-center">
+          <button onclick="apriModalOrdinaFarmaco('${f.nome}', '${f.prezzo}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm transition flex items-center justify-center">
             <i class="fa-solid fa-cart-plus mr-2"></i> Ordina Farmaco
           </button>
         </div>
       `).join('');
     }
 
-    function apriModalOrdinaFarmaco(nomeFarmaco) {
+    function apriModalOrdinaFarmaco(nomeFarmaco, prezzoUnitario) {
       document.getElementById('ordina-farmaco-nome-hidden').value = nomeFarmaco;
-      document.getElementById('ordina-farmaco-display').value = nomeFarmaco;
+      document.getElementById('ordina-farmaco-prezzo-unitario-hidden').value = prezzoUnitario;
+      document.getElementById('ordina-farmaco-display').value = `${nomeFarmaco} (${prezzoUnitario})`;
+      document.getElementById('ordina-qta').value = 1;
+      
+      aggiornaCalcoloTotaleFarmaco();
       document.getElementById('modal-ordina-farmaco').classList.remove('hidden');
+    }
+
+    function aggiornaCalcoloTotaleFarmaco() {
+      const prezzoUnitarioStr = document.getElementById('ordina-farmaco-prezzo-unitario-hidden').value;
+      const qta = parseInt(document.getElementById('ordina-qta').value) || 1;
+      const val = estraiValoreNumericoPrezzo(prezzoUnitarioStr);
+      const totale = val * qta;
+
+      const sim = prezzoUnitarioStr.includes('$') ? '$' : '€';
+      document.getElementById('ordina-totale-in-game-display').textContent = `${totale}${sim}`;
     }
 
     function chiudiModalOrdinaFarmaco() {
@@ -794,14 +845,22 @@
     async function confermaOrdineFarmaco(e) {
       e.preventDefault();
       const codFarm = 'FAR-' + Math.floor(1000 + Math.random() * 9000);
+      const prezzoUnitarioStr = document.getElementById('ordina-farmaco-prezzo-unitario-hidden').value;
+      const qta = parseInt(document.getElementById('ordina-qta').value) || 1;
+      const val = estraiValoreNumericoPrezzo(prezzoUnitarioStr);
+      const sim = prezzoUnitarioStr.includes('$') ? '$' : '€';
+      const totaleCalcolatoStr = `${val * qta}${sim}`;
+
       const nuovoOrdine = {
         id: Date.now(),
         codice: codFarm,
         data: new Date().toLocaleString('it-IT'),
         farmaco: document.getElementById('ordina-farmaco-nome-hidden').value,
+        prezzoUnitario: prezzoUnitarioStr,
+        totaleInGame: totaleCalcolatoStr,
         nome: document.getElementById('ordina-nome').value,
         discord: document.getElementById('ordina-discord').value,
-        qta: document.getElementById('ordina-qta').value,
+        qta: qta,
         note: document.getElementById('ordina-note').value,
         stato: 'In Attesa'
       };
@@ -813,7 +872,7 @@
         inviaDiscordEmbedFarmacia(nuovoOrdine);
       }
 
-      alert(`Ordine inviato con successo!\nIL TUO CODICE ORDINE È: ${codFarm}\nPresentalo al personale CRI per il ritiro o la consegna.`);
+      alert(`Ordine inviato con successo!\nIL TUO CODICE ORDINE È: ${codFarm}\nTOTALE DA PAGARE IN-GAME:${totaleCalcolatoStr}\nPresenta il codice al personale della Croce Rossa per la consegna.`);
       chiudiModalOrdinaFarmaco();
       showSection('home');
     }
@@ -827,9 +886,10 @@
             { name: "Codice Ordine", value: `\`${o.codice}\``, inline: true },
             { name: "Nome RP", value: o.nome, inline: true },
             { name: "Tag Discord", value: o.discord, inline: true },
-            { name: "Farmaco", value: o.farmaco, inline: true },
+            { name: "Farmaco Ordinato", value: o.farmaco, inline: true },
             { name: "Quantità", value: `${o.qta} pz`, inline: true },
-            { name: "Note", value: o.note || "Nessuna nota", inline: false }
+            { name: "💰 TOTALE DA PAGARE IN-GAME", value: `**${o.totaleInGame}**`, inline: false },
+            { name: "Note Consegna", value: o.note || "Nessuna nota", inline: false }
           ],
           footer: { text: "Farmacia CRI RP • Data: " + o.data }
         }]
@@ -910,7 +970,7 @@
       appData.operatori.forEach(o => {
         if (o.turni) o.turni.forEach(t => totaleSecondiTutti += (t.durataSecondi || 0));
       });
-      document.getElementById('stat-ore-totali').textContent = (totaleSecondiTutti / 3600).toFixed(1) + 'h';
+      document.getElementById('stat-ore-totali').textContent = formattaTempoPreciso(totaleSecondiTutti);
 
       // Render Farmaci Admin
       const tbodyFarm = document.getElementById('lista-farmaci-admin');
@@ -934,6 +994,7 @@
           <td class="p-2 font-bold">${o.nome}</td>
           <td class="p-2 text-indigo-600 font-semibold">${o.discord}</td>
           <td class="p-2 text-xs">${o.farmaco} (<strong>${o.qta} pz</strong>)</td>
+          <td class="p-2 text-xs font-bold text-green-600">${o.totaleInGame || o.prezzoUnitario || '-'}</td>
           <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${o.stato === 'In Consegna' ? 'bg-blue-100 text-blue-800' : (o.stato === 'Consegnato' ? 'bg-green-100 text-green-800' : (o.stato === 'Annullato' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'))}">${o.stato}</span></td>
           <td class="p-2 text-right space-x-1">
             <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'In Consegna')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">In Consegna</button>
@@ -944,12 +1005,12 @@
         </tr>
       `).join('');
 
-      // Render Operatori
+      // Render Operatori con Tempo Preciso e Pulsante Reset Ore
       const tbodyOp = document.getElementById('lista-operatori');
       tbodyOp.innerHTML = appData.operatori.map(o => {
         let secOp = 0;
         if (o.turni) o.turni.forEach(t => secOp += (t.durataSecondi || 0));
-        const oreOp = (secOp / 3600).toFixed(1);
+        const tempoFormattato = formattaTempoPreciso(secOp);
 
         return `
           <tr class="border-b hover:bg-gray-50">
@@ -957,11 +1018,12 @@
             <td class="p-2">${o.user}</td>
             <td class="p-2"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold">${o.ruolo}</span></td>
             <td class="p-2">${o.provvisoria ? '<span class="text-amber-600 font-bold text-xs">Provvisoria</span>' : '<span class="text-green-600 text-xs">Definitiva</span>'}</td>
-            <td class="p-2 font-mono font-bold text-xs">${oreOp} ore</td>
+            <td class="p-2 font-mono font-bold text-xs text-indigo-700">${tempoFormattato}</td>
             <td class="p-2 text-right space-x-1">
-              <button onclick="modificaRuoloOp(${o.id})" class="bg-blue-600 text-white text-xs px-2 py-1 rounded" title="Promuovi o Modifica Ruolo"><i class="fa-solid fa-user-pen mr-1"></i> Promuovi / Ruolo</button>
+              <button onclick="modificaRuoloOp(${o.id})" class="bg-blue-600 text-white text-xs px-2 py-1 rounded" title="Promuovi o Modifica Ruolo"><i class="fa-solid fa-user-pen mr-1"></i> Promuovi</button>
+              <button onclick="resettaOreSingoloOp(${o.id})" class="bg-amber-600 text-white text-xs px-2 py-1 rounded" title="Azzera Turni Settimanali"><i class="fa-solid fa-rotate-left mr-1"></i> Resetta Ore</button>
               <button onclick="apriStoricoTurni(${o.id})" class="bg-indigo-600 text-white text-xs px-2 py-1 rounded" title="Storico Turni">Storico</button>
-              <button onclick="resetPassOp(${o.id})" class="bg-amber-500 text-white text-xs px-2 py-1 rounded">Resetta Pass</button>
+              <button onclick="resetPassOp(${o.id})" class="bg-amber-500 text-white text-xs px-2 py-1 rounded">Pass</button>
               <button onclick="eliminaOp(${o.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded">x</button>
             </td>
           </tr>
@@ -987,6 +1049,28 @@
           </td>
         </tr>
       `).join('');
+    }
+
+    // FUNZIONI RESET ORE SETTIMANALI
+    function resettaOreSingoloOp(id) {
+      const op = appData.operatori.find(o => o.id === id);
+      if (op && confirm(`Confermi di voler azzerare le ore settimanali registrate per ${op.nome}?`)) {
+        op.turni = [];
+        salvaTuttoCloud();
+        renderAdmin();
+        alert(`Ore azzerate con successo per l'operatore ${op.nome}.`);
+      }
+    }
+
+    function resettaOreTuttiOp() {
+      if (confirm('⚠️ ATTENZIONE!\nSei sicuro di voler azzerare le ore settimanali di TUTTI gli operatori?\nQuesta operazione avvierà la nuova settimana lavorativa.')) {
+        appData.operatori.forEach(o => {
+          o.turni = [];
+        });
+        salvaTuttoCloud();
+        renderAdmin();
+        alert('Ore settimanali di tutti gli operatori azzerate con successo!');
+      }
     }
 
     // MODIFICA RUOLO / PROMOZIONE OPERATORE
@@ -1015,16 +1099,13 @@
         divContenuto.innerHTML = `<p class="text-gray-500 py-2">Nessun turno registrato per questo operatore.</p>`;
       } else {
         divContenuto.innerHTML = op.turni.map(t => {
-          const h = Math.floor(t.durataSecondi / 3600);
-          const m = Math.floor((t.durataSecondi % 3600) / 60);
-          const s = t.durataSecondi % 60;
           return `
             <div class="py-2 flex justify-between items-center">
               <div>
                 <div class="font-bold">Inizio: ${t.inizio}</div>
                 <div class="text-gray-500">Fine: ${t.fine}</div>
               </div>
-              <div class="font-mono bg-gray-100 p-1 rounded font-bold">${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</div>
+              <div class="font-mono bg-gray-100 p-1 rounded font-bold text-indigo-600">${formattaTempoPreciso(t.durataSecondi)}</div>
             </div>
           `;
         }).join('');
@@ -1175,21 +1256,18 @@
       } else {
         tbodyOpStorico.innerHTML = op.turni.map((t, index) => {
           totaleSecondiOp += (t.durataSecondi || 0);
-          const h = Math.floor(t.durataSecondi / 3600);
-          const m = Math.floor((t.durataSecondi % 3600) / 60);
-          const s = t.durataSecondi % 60;
           return `
             <tr class="border-b hover:bg-gray-50">
               <td class="p-2 font-bold text-xs text-gray-400">#${index + 1}</td>
               <td class="p-2 text-xs">${t.inizio}</td>
               <td class="p-2 text-xs">${t.fine}</td>
-              <td class="p-2 font-mono font-bold text-xs text-green-600">${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</td>
+              <td class="p-2 font-mono font-bold text-xs text-green-600">${formattaTempoPreciso(t.durataSecondi)}</td>
             </tr>
           `;
         }).join('');
       }
 
-      document.getElementById('op-ore-totali-badge').textContent = `Totale: ${(totaleSecondiOp / 3600).toFixed(1)} ore`;
+      document.getElementById('op-ore-totali-badge').textContent = `Totale: ${formattaTempoPreciso(totaleSecondiOp)}`;
     }
 
     function toggleServizio(stato) {
