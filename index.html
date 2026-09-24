@@ -444,10 +444,10 @@
               <tr class="bg-gray-100 text-gray-700 border-b">
                 <th class="p-2">Nome</th>
                 <th class="p-2">Username</th>
-                <th class="p-2">Ruolo</th>
+                <th class="p-2">Ruolo attuale</th>
                 <th class="p-2">Stato Pass</th>
                 <th class="p-2">Ore Totali</th>
-                <th class="p-2 text-right">Azioni</th>
+                <th class="p-2 text-right">Azioni / Promozioni</th>
               </tr>
             </thead>
             <tbody id="lista-operatori"></tbody>
@@ -959,6 +959,7 @@
             <td class="p-2">${o.provvisoria ? '<span class="text-amber-600 font-bold text-xs">Provvisoria</span>' : '<span class="text-green-600 text-xs">Definitiva</span>'}</td>
             <td class="p-2 font-mono font-bold text-xs">${oreOp} ore</td>
             <td class="p-2 text-right space-x-1">
+              <button onclick="modificaRuoloOp(${o.id})" class="bg-blue-600 text-white text-xs px-2 py-1 rounded" title="Promuovi o Modifica Ruolo"><i class="fa-solid fa-user-pen mr-1"></i> Promuovi / Ruolo</button>
               <button onclick="apriStoricoTurni(${o.id})" class="bg-indigo-600 text-white text-xs px-2 py-1 rounded" title="Storico Turni">Storico</button>
               <button onclick="resetPassOp(${o.id})" class="bg-amber-500 text-white text-xs px-2 py-1 rounded">Resetta Pass</button>
               <button onclick="eliminaOp(${o.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded">x</button>
@@ -986,6 +987,20 @@
           </td>
         </tr>
       `).join('');
+    }
+
+    // MODIFICA RUOLO / PROMOZIONE OPERATORE
+    function modificaRuoloOp(id) {
+      const op = appData.operatori.find(o => o.id === id);
+      if (op) {
+        const nuovoRuolo = prompt(`Modifica Ruolo / Grado per ${op.nome}\nRuolo Attuale: "${op.ruolo}"`, op.ruolo);
+        if (nuovoRuolo !== null && nuovoRuolo.trim() !== '') {
+          op.ruolo = nuovoRuolo.trim();
+          salvaTuttoCloud();
+          renderAdmin();
+          alert(`Ruolo aggiornato con successo per ${op.nome} in "${op.ruolo}"!`);
+        }
+      }
     }
 
     // STORICO TURNI OPERATORE (ADMIN MODAL)
