@@ -6,6 +6,11 @@
   <title>Croce Rossa Italiana - Portale RP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDK (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
   <style>
     .bg-cri-red { background-color: #d90429; }
     .text-cri-red { color: #d90429; }
@@ -35,6 +40,12 @@
     </div>
   </nav>
 
+  <!-- Status Bar Cloud -->
+  <div id="cloud-status-bar" class="bg-green-600 text-white text-xs text-center py-1 font-semibold flex items-center justify-center space-x-2">
+    <i class="fa-solid fa-cloud"></i>
+    <span>Database Cloud Firebase Collegato &amp; Sincronizzato in Tempo Reale</span>
+  </div>
+
   <!-- Container Principale -->
   <main class="max-w-7xl mx-auto p-4">
 
@@ -48,7 +59,7 @@
         </div>
       </div>
 
-      <!-- Card dei certificati -->
+      <!-- Card dei 4 certificati -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="bg-white p-6 rounded-lg shadow border border-gray-200 flex flex-col justify-between hover:shadow-lg transition">
           <div>
@@ -88,7 +99,7 @@
       </div>
     </section>
 
-    <!-- FORM PRENOTAZIONE -->
+    <!-- FORM PRENOTAZIONI -->
     <section id="sec-prenota" class="hidden max-w-2xl mx-auto">
       <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-cri-red">
         <h2 class="text-2xl font-bold mb-4 text-gray-800 flex items-center"><i class="fa-solid fa-calendar-check text-cri-red mr-2"></i> Prenota Visita Medica</h2>
@@ -139,11 +150,10 @@
 
     <!-- DASHBOARD OPERATORE -->
     <section id="sec-dash-op" class="hidden space-y-6">
-      <!-- Banner Cambio Password per credenziali provvisorie -->
       <div id="banner-pass-provvisoria" class="hidden bg-amber-100 border-l-4 border-amber-500 text-amber-900 p-4 rounded shadow flex justify-between items-center">
         <div>
           <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Stai usando una password provvisoria!</p>
-          <p class="text-sm">Per motivi di sicurezza, ti consigliamo di modificare la tua password prima possibile.</p>
+          <p class="text-sm">Per motivi di sicurezza, modifica la tua password il prima possibile.</p>
         </div>
         <button onclick="apriModalCambioPass()" class="bg-amber-600 text-white text-sm font-bold px-3 py-1.5 rounded hover:bg-amber-700 shadow">Cambia Password</button>
       </div>
@@ -163,7 +173,6 @@
         </div>
       </div>
 
-      <!-- Timer Servizio -->
       <div id="box-timer-servizio" class="hidden bg-green-50 border border-green-200 rounded-lg p-6 text-center shadow-inner">
         <span class="text-sm text-green-700 font-semibold uppercase tracking-wider">Tempo in Servizio Corrente</span>
         <div id="timer-display" class="text-4xl font-mono font-bold text-green-800 mt-2">00:00:00</div>
@@ -239,7 +248,7 @@
             <label class="block text-xs font-bold text-gray-600">Password Provvisoria</label>
             <div class="flex gap-1 mt-1">
               <input type="text" id="nuovo-op-pass" required placeholder="Password" class="w-full border p-2 rounded text-sm">
-              <button type="button" onclick="generaPassProvvisoria()" class="bg-gray-200 hover:bg-gray-300 text-xs px-2 rounded font-bold" title="Genera password temporanea">Crea</button>
+              <button type="button" onclick="generaPassProvvisoria()" class="bg-gray-200 hover:bg-gray-300 text-xs px-2 rounded font-bold" title="Genera temporanea">Crea</button>
             </div>
           </div>
           <div class="md:col-span-4 flex justify-end mt-2">
@@ -247,7 +256,6 @@
           </div>
         </form>
 
-        <!-- Tabella Operatori -->
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm border-collapse">
             <thead>
@@ -289,7 +297,7 @@
 
   </main>
 
-  <!-- Modal Cambio Password Operatore -->
+  <!-- Modal Cambio Pass Operatore -->
   <div id="modal-cambio-pass" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4">
       <h3 class="text-lg font-bold text-gray-800">Imposta Password Definitiva</h3>
@@ -328,26 +336,71 @@
   </div>
 
   <script>
-    // Inizializzazione Dati
+    // Configurazioni Firebase integrate
+    const firebaseConfig = {
+      apiKey: "AIzaSyCvJybS5CI3gJ8-8N9kSvlx61TpFmDVb50",
+      authDomain: "cri-rp-database.firebaseapp.com",
+      databaseURL: "https://cri-rp-database-default-rtdb.firebaseio.com",
+      projectId: "cri-rp-database",
+      storageBucket: "cri-rp-database.firebasestorage.app",
+      messagingSenderId: "377709199383",
+      appId: "1:377709199383:web:e2b7f9efdf8087fff95c52",
+      measurementId: "G-3E125VB0QB"
+    };
+
+    // Inizializzazione Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Dati Applicazione
     let appData = {
-      adminUser: localStorage.getItem('cri_admin_user') || 'admin',
-      adminPass: localStorage.getItem('cri_admin_pass') || 'admin123',
-      webhookUrl: localStorage.getItem('cri_webhook_url') || '',
-      operatori: JSON.parse(localStorage.getItem('cri_operatori')) || [
+      adminUser: 'admin',
+      adminPass: 'admin123',
+      webhookUrl: '',
+      operatori: [
         { id: 1, nome: 'Mario Rossi', user: 'm.rossi', pass: 'CRI-2024', provvisoria: true, ruolo: 'Soccorritore', inServizio: false, inizioTurno: null }
       ],
-      prenotazioni: JSON.parse(localStorage.getItem('cri_prenotazioni')) || []
+      prenotazioni: []
     };
 
     let sessioneCorrente = null;
     let timerInterval = null;
 
-    function salvaTutto() {
-      localStorage.setItem('cri_admin_user', appData.adminUser);
-      localStorage.setItem('cri_admin_pass', appData.adminPass);
-      localStorage.setItem('cri_webhook_url', appData.webhookUrl);
-      localStorage.setItem('cri_operatori', JSON.stringify(appData.operatori));
-      localStorage.setItem('cri_prenotazioni', JSON.stringify(appData.prenotazioni));
+    // Sincronizzazione Cloud Firebase in Tempo Reale
+    db.ref('app_data').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        if (data.adminUser) appData.adminUser = data.adminUser;
+        if (data.adminPass) appData.adminPass = data.adminPass;
+        if (data.webhookUrl !== undefined) appData.webhookUrl = data.webhookUrl;
+        if (data.operatori) appData.operatori = Object.values(data.operatori);
+        if (data.prenotazioni) appData.prenotazioni = Object.values(data.prenotazioni);
+      } else {
+        salvaTuttoCloud();
+      }
+
+      // Se l'operatore è loggato, aggiorna la sessione
+      if (sessioneCorrente && sessioneCorrente.tipo === 'operatore') {
+        const opInDb = appData.operatori.find(o => o.id === sessioneCorrente.user.id);
+        if (opInDb) sessioneCorrente.user = opInDb;
+      }
+
+      // Aggiorna Viste
+      const currentSec = document.querySelector('main > section:not(.hidden)');
+      if (currentSec) {
+        if (currentSec.id === 'sec-dash-admin') renderAdmin();
+        if (currentSec.id === 'sec-dash-op') renderOpDashboard();
+      }
+    });
+
+    function salvaTuttoCloud() {
+      db.ref('app_data').set({
+        adminUser: appData.adminUser,
+        adminPass: appData.adminPass,
+        webhookUrl: appData.webhookUrl,
+        operatori: appData.operatori,
+        prenotazioni: appData.prenotazioni
+      });
     }
 
     function showSection(secId) {
@@ -378,9 +431,8 @@
       };
 
       appData.prenotazioni.unshift(nuovaPrenotazione);
-      salvaTutto();
+      salvaTuttoCloud();
 
-      // Notifica Discord se configurata
       if (appData.webhookUrl) {
         inviaDiscordEmbed(nuovaPrenotazione);
       }
@@ -394,7 +446,7 @@
       const payload = {
         embeds: [{
           title: "🚨 Nuova Richiesta Visita Medica RP",
-          color: 14222377, // Rosso CRI
+          color: 14222377,
           fields: [
             { name: "Nome RP", value: p.nome, inline: true },
             { name: "Tag Discord", value: p.discord, inline: true },
@@ -412,7 +464,7 @@
           body: JSON.stringify(payload)
         });
       } catch (err) {
-        console.warn("Errore invio webhook:", err);
+        console.warn("Errore webhook Discord:", err);
       }
     }
 
@@ -486,9 +538,9 @@
       };
 
       appData.operatori.push(nuovo);
-      salvaTutto();
+      salvaTuttoCloud();
       renderAdmin();
-      alert('Operatore creato con successo!');
+      alert('Operatore creato e salvato sul Cloud!');
       e.target.reset();
     }
 
@@ -498,16 +550,16 @@
         const nuova = 'CRI-' + Math.random().toString(36).substring(2, 6).toUpperCase();
         op.pass = nuova;
         op.provvisoria = true;
-        salvaTutto();
+        salvaTuttoCloud();
         renderAdmin();
-        alert(`Nuova password provvisoria per ${op.nome}: ${nuova}`);
+        alert(`Nuova password provvisoria salvata per ${op.nome}: ${nuova}`);
       }
     }
 
     function eliminaOp(id) {
-      if (!confirm('Sei sicuro di voler eliminare questo operatore?')) return;
+      if (!confirm('Sei sicuro di voler eliminare questo operatore dal Cloud?')) return;
       appData.operatori = appData.operatori.filter(o => o.id !== id);
-      salvaTutto();
+      salvaTuttoCloud();
       renderAdmin();
     }
 
@@ -515,21 +567,21 @@
       const pre = appData.prenotazioni.find(p => p.id === id);
       if (pre) {
         pre.stato = stato;
-        salvaTutto();
+        salvaTuttoCloud();
         renderAdmin();
       }
     }
 
     function eliminaPrenotazione(id) {
       appData.prenotazioni = appData.prenotazioni.filter(p => p.id !== id);
-      salvaTutto();
+      salvaTuttoCloud();
       renderAdmin();
     }
 
     function salvaWebhook() {
       appData.webhookUrl = document.getElementById('discord-webhook-url').value;
-      salvaTutto();
-      alert('Webhook salvato correttamente!');
+      salvaTuttoCloud();
+      alert('URL Webhook salvato sul Cloud!');
     }
 
     function testWebhook() {
@@ -538,10 +590,10 @@
         nome: "Mario Rossi (TEST)",
         discord: "@test_user",
         tipo: "Test Webhook",
-        note: "Questo è un messaggio di prova dal gestore CRI RP.",
+        note: "Messaggio di prova dal gestore CRI RP.",
         data: new Date().toLocaleString('it-IT')
       });
-      alert('Messaggio di prova inviato! Controlla il tuo canale Discord.');
+      alert('Messaggio di prova inviato al canale Discord!');
     }
 
     // AUTH OPERATORE
@@ -564,14 +616,12 @@
       document.getElementById('op-welcome-name').textContent = 'Benvenuto, ' + op.nome;
       document.getElementById('op-badge-ruolo').textContent = op.ruolo;
 
-      // Banner pass provvisoria
       if (op.provvisoria) {
         document.getElementById('banner-pass-provvisoria').classList.remove('hidden');
       } else {
         document.getElementById('banner-pass-provvisoria').classList.add('hidden');
       }
 
-      // Stato Servizio
       const btnIn = document.getElementById('btn-in-servizio');
       const btnOut = document.getElementById('btn-out-servizio');
       const badgeStato = document.getElementById('op-stato-badge');
@@ -603,14 +653,13 @@
       op.inServizio = stato;
       op.inizioTurno = stato ? Date.now() : null;
 
-      // Aggiorna anche nell'array principale
       const opInDb = appData.operatori.find(o => o.id === op.id);
       if (opInDb) {
         opInDb.inServizio = stato;
         opInDb.inizioTurno = op.inizioTurno;
       }
 
-      salvaTutto();
+      salvaTuttoCloud();
       renderOpDashboard();
     }
 
@@ -646,10 +695,10 @@
         opInDb.provvisoria = false;
       }
 
-      salvaTutto();
+      salvaTuttoCloud();
       chiudiModalPass();
       renderOpDashboard();
-      alert('Password aggiornata con successo!');
+      alert('Password aggiornata con successo sul Cloud!');
     }
 
     function apriModalCredenzialiAdmin() { 
@@ -662,9 +711,9 @@
       e.preventDefault();
       appData.adminUser = document.getElementById('nuovo-admin-user').value;
       appData.adminPass = document.getElementById('nuova-admin-pass').value;
-      salvaTutto();
+      salvaTuttoCloud();
       chiudiModalAdmin();
-      alert('Credenziali Amministratore aggiornate!');
+      alert('Credenziali Amministratore aggiornate sul Cloud!');
     }
 
     function logout() {
