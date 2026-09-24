@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Croce Rossa Italiana - Portale RP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .bg-cri-red { background-color: #d90429; }
+    .text-cri-red { color: #d90429; }
+    .border-cri-red { border-color: #d90429; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+  <!-- Navigation -->
+  <nav class="bg-cri-red text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="showSection('home')">
+        <div class="bg-white p-2 rounded-full text-red-600 flex items-center justify-center w-10 h-10 shadow">
+          <i class="fa-solid fa-cross text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-xl leading-none tracking-wide">CROCE ROSSA ITALIANA</h1>
+          <span class="text-xs tracking-widest opacity-90">GESTIONALE SANITARIO RP</span>
+        </div>
+      </div>
+      <div class="space-x-2" id="nav-buttons">
+        <button onclick="showSection('home')" class="hover:bg-red-700 px-3 py-2 rounded text-sm transition"><i class="fa-solid fa-house mr-1"></i> Home</button>
+        <button onclick="showSection('prenota')" class="hover:bg-red-700 px-3 py-2 rounded text-sm transition"><i class="fa-solid fa-calendar-plus mr-1"></i> Prenota Visita</button>
+        <button onclick="showSection('login-op')" class="bg-white text-red-600 font-bold px-3 py-2 rounded text-sm hover:bg-gray-100 transition shadow-sm"><i class="fa-solid fa-user-nurse mr-1"></i> Area Operatori</button>
+        <button onclick="showSection('login-admin')" class="bg-gray-800 text-white px-3 py-2 rounded text-sm hover:bg-gray-900 transition"><i class="fa-solid fa-user-shield mr-1"></i> Admin</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Container Principale -->
+  <main class="max-w-7xl mx-auto p-4">
+
+    <!-- HOME / PRENOTAZIONI PUBBLICHE -->
+    <section id="sec-home" class="space-y-6">
+      <div class="bg-white rounded-lg shadow-md p-8 text-center border-t-4 border-cri-red">
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">Servizio Sanitario RP - Croce Rossa</h2>
+        <p class="text-gray-600 max-w-2xl mx-auto">Benvenuto nel portale ufficiale. Qui puoi prenotare le visite mediche e i certificati sanitari. Il nostro personale qualificato prenderà in carico la tua richiesta.</p>
+        <div class="mt-6 flex justify-center space-x-4">
+          <button onclick="showSection('prenota')" class="bg-cri-red text-white font-bold px-6 py-3 rounded-lg shadow-md hover:bg-red-700 transition"><i class="fa-solid fa-notes-medical mr-2"></i> Richiedi Visita Medica</button>
+        </div>
+      </div>
+
+      <!-- Card dei certificati -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow border border-gray-200 flex flex-col justify-between hover:shadow-lg transition">
+          <div>
+            <div class="text-red-600 text-3xl mb-3"><i class="fa-solid fa-notes-medical"></i></div>
+            <h3 class="font-bold text-lg mb-2 text-gray-800">Certificati Medici Generici</h3>
+            <p class="text-gray-600 text-sm mb-4">Visite sanitarie generali, idoneità psicofisica di base e controlli di routine.</p>
+          </div>
+          <button onclick="quickBook('Certificati Medici Generici')" class="text-red-600 font-semibold text-sm hover:underline text-left">Prenota ora &rarr;</button>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow border border-gray-200 flex flex-col justify-between hover:shadow-lg transition">
+          <div>
+            <div class="text-red-600 text-3xl mb-3"><i class="fa-solid fa-id-card"></i></div>
+            <h3 class="font-bold text-lg mb-2 text-gray-800">Certificati Anamnestici Porto d'Armi</h3>
+            <p class="text-gray-600 text-sm mb-4">Certificazione anamnestica preliminare per rilascio o rinnovo porto d'armi.</p>
+          </div>
+          <button onclick="quickBook('Certificati Anamnestici Porto d\'Armi')" class="text-red-600 font-semibold text-sm hover:underline text-left">Prenota ora &rarr;</button>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow border border-gray-200 flex flex-col justify-between hover:shadow-lg transition">
+          <div>
+            <div class="text-red-600 text-3xl mb-3"><i class="fa-solid fa-shield-halved"></i></div>
+            <h3 class="font-bold text-lg mb-2 text-gray-800">Arruolamento FdO</h3>
+            <p class="text-gray-600 text-sm mb-4">Visite mediche e controlli idoneità per arruolamento Forze dell'Ordine.</p>
+          </div>
+          <button onclick="quickBook('Arruolamento FdO')" class="text-red-600 font-semibold text-sm hover:underline text-left">Prenota ora &rarr;</button>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow border border-gray-200 flex flex-col justify-between hover:shadow-lg transition">
+          <div>
+            <div class="text-red-600 text-3xl mb-3"><i class="fa-solid fa-user-check"></i></div>
+            <h3 class="font-bold text-lg mb-2 text-gray-800">Idoneità Lavorativa</h3>
+            <p class="text-gray-600 text-sm mb-4">Rilascio certificazione medica preventiva per idoneità alle mansioni lavorative.</p>
+          </div>
+          <button onclick="quickBook('Idoneità Lavorativa')" class="text-red-600 font-semibold text-sm hover:underline text-left">Prenota ora &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FORM PRENOTAZIONE -->
+    <section id="sec-prenota" class="hidden max-w-2xl mx-auto">
+      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-cri-red">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800 flex items-center"><i class="fa-solid fa-calendar-check text-cri-red mr-2"></i> Prenota Visita Medica</h2>
+        <form id="form-prenotazione" onsubmit="salvaPrenotazione(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nome e Cognome RP</label>
+            <input type="text" id="prenota-nome" required class="w-full border p-2 rounded mt-1 focus:ring-2 focus:ring-red-500 outline-none" placeholder="Es. Mario Rossi">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Tag Discord (per essere ricontattato)</label>
+            <input type="text" id="prenota-discord" required class="w-full border p-2 rounded mt-1 focus:ring-2 focus:ring-red-500 outline-none" placeholder="Es. @mario_rossi o mariorossi#1234">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Tipo di Certificato / Visita</label>
+            <select id="prenota-tipo" required class="w-full border p-2 rounded mt-1 focus:ring-2 focus:ring-red-500 outline-none bg-white">
+              <option value="Certificati Medici Generici">Certificati Medici Generici</option>
+              <option value="Certificati Anamnestici Porto d'Armi">Certificati Anamnestici Porto d'Armi</option>
+              <option value="Arruolamento FdO">Arruolamento FdO</option>
+              <option value="Idoneità Lavorativa">Idoneità Lavorativa</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Note o Preferenze Orarie</label>
+            <textarea id="prenota-note" rows="3" class="w-full border p-2 rounded mt-1 focus:ring-2 focus:ring-red-500 outline-none" placeholder="Specifica eventuali orari o dettagli sulla richiesta..."></textarea>
+          </div>
+          <button type="submit" class="w-full bg-cri-red text-white font-bold py-3 rounded hover:bg-red-700 transition shadow"><i class="fa-solid fa-paper-plane mr-2"></i> Invia Richiesta Prenotazione</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- LOGIN OPERATORE -->
+    <section id="sec-login-op" class="hidden max-w-md mx-auto">
+      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-cri-red">
+        <h2 class="text-xl font-bold mb-4 text-center text-gray-800"><i class="fa-solid fa-user-nurse text-cri-red mr-2"></i> Accesso Operatori CRI</h2>
+        <form onsubmit="loginOperatore(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Username Operatore</label>
+            <input type="text" id="op-user" required class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-red-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Password</label>
+            <input type="password" id="op-pass" required class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-red-500">
+          </div>
+          <button type="submit" class="w-full bg-cri-red text-white font-bold py-2 rounded hover:bg-red-700 transition">Accedi</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- DASHBOARD OPERATORE -->
+    <section id="sec-dash-op" class="hidden space-y-6">
+      <!-- Banner Cambio Password per credenziali provvisorie -->
+      <div id="banner-pass-provvisoria" class="hidden bg-amber-100 border-l-4 border-amber-500 text-amber-900 p-4 rounded shadow flex justify-between items-center">
+        <div>
+          <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Stai usando una password provvisoria!</p>
+          <p class="text-sm">Per motivi di sicurezza, ti consigliamo di modificare la tua password prima possibile.</p>
+        </div>
+        <button onclick="apriModalCambioPass()" class="bg-amber-600 text-white text-sm font-bold px-3 py-1.5 rounded hover:bg-amber-700 shadow">Cambia Password</button>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800" id="op-welcome-name">Benvenuto Operatore</h2>
+          <div class="flex items-center space-x-2 mt-1">
+            <span id="op-badge-ruolo" class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded">Ruolo</span>
+            <span id="op-stato-badge" class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded">Fuori Servizio</span>
+          </div>
+        </div>
+        <div class="flex space-x-2">
+          <button id="btn-in-servizio" onclick="toggleServizio(true)" class="bg-green-600 text-white font-bold px-4 py-2 rounded hover:bg-green-700 shadow transition"><i class="fa-solid fa-play mr-1"></i> Entrata in Servizio</button>
+          <button id="btn-out-servizio" onclick="toggleServizio(false)" class="bg-red-600 text-white font-bold px-4 py-2 rounded hover:bg-red-700 shadow transition disabled:opacity-50" disabled><i class="fa-solid fa-stop mr-1"></i> Uscita dal Servizio</button>
+          <button onclick="logout()" class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-700 transition" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </div>
+      </div>
+
+      <!-- Timer Servizio -->
+      <div id="box-timer-servizio" class="hidden bg-green-50 border border-green-200 rounded-lg p-6 text-center shadow-inner">
+        <span class="text-sm text-green-700 font-semibold uppercase tracking-wider">Tempo in Servizio Corrente</span>
+        <div id="timer-display" class="text-4xl font-mono font-bold text-green-800 mt-2">00:00:00</div>
+      </div>
+    </section>
+
+    <!-- LOGIN ADMIN -->
+    <section id="sec-login-admin" class="hidden max-w-md mx-auto">
+      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-gray-800">
+        <h2 class="text-xl font-bold mb-4 text-center text-gray-800"><i class="fa-solid fa-user-shield mr-2"></i> Pannello Amministrazione</h2>
+        <form onsubmit="loginAdmin(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Username Admin</label>
+            <input type="text" id="admin-user" required class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-gray-800">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Password</label>
+            <input type="password" id="admin-pass" required class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-gray-800">
+          </div>
+          <button type="submit" class="w-full bg-gray-800 text-white font-bold py-2 rounded hover:bg-gray-900 transition">Accedi come Admin</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- DASHBOARD ADMIN -->
+    <section id="sec-dash-admin" class="hidden space-y-6">
+      <div class="flex justify-between items-center bg-gray-800 text-white p-4 rounded-lg shadow">
+        <div>
+          <h2 class="text-xl font-bold">Pannello Gestione Amministratore</h2>
+          <p class="text-xs text-gray-300">Gestione operatori, ruoli, password e webhook Discord</p>
+        </div>
+        <div class="space-x-2">
+          <button onclick="apriModalCredenzialiAdmin()" class="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-xs px-3 py-2 rounded transition"><i class="fa-solid fa-key mr-1"></i> Cambia Password Admin</button>
+          <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded transition"><i class="fa-solid fa-right-from-bracket mr-1"></i> Esci</button>
+        </div>
+      </div>
+
+      <!-- Configurazione Discord Webhook -->
+      <div class="bg-white p-6 rounded-lg shadow space-y-3 border-l-4 border-indigo-600">
+        <h3 class="font-bold text-gray-800 flex items-center"><i class="fa-brands fa-discord text-indigo-600 mr-2 text-xl"></i> Configurazione Notifiche Discord</h3>
+        <p class="text-xs text-gray-500">Incolla qui l'URL del Webhook del canale Discord dove desideri ricevere le notifiche delle nuove prenotazioni.</p>
+        <div class="flex gap-2">
+          <input type="url" id="discord-webhook-url" placeholder="https://discord.com/api/webhooks/..." class="flex-1 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          <button onclick="salvaWebhook()" class="bg-indigo-600 text-white px-4 py-2 rounded font-bold text-sm hover:bg-indigo-700 transition">Salva Webhook</button>
+          <button onclick="testWebhook()" class="bg-gray-200 text-gray-800 px-3 py-2 rounded font-bold text-sm hover:bg-gray-300 transition">Test</button>
+        </div>
+      </div>
+
+      <!-- Gestione Operatori -->
+      <div class="bg-white p-6 rounded-lg shadow space-y-4">
+        <h3 class="font-bold text-gray-800 text-lg border-b pb-2"><i class="fa-solid fa-users text-cri-red mr-2"></i> Creazione e Gestione Operatori</h3>
+        <form onsubmit="creaOperatore(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded border">
+          <div>
+            <label class="block text-xs font-bold text-gray-600">Nome Operatore</label>
+            <input type="text" id="nuovo-op-nome" required placeholder="Es. Marco Rossi" class="w-full border p-2 rounded text-sm mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600">Username Accesso</label>
+            <input type="text" id="nuovo-op-user" required placeholder="Es. m.rossi" class="w-full border p-2 rounded text-sm mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600">Ruolo / Qualifica</label>
+            <select id="nuovo-op-ruolo" required class="w-full border p-2 rounded text-sm mt-1 bg-white">
+              <option value="Soccorritore">Soccorritore</option>
+              <option value="Autista Soccorritore">Autista Soccorritore</option>
+              <option value="Infermiere">Infermiere</option>
+              <option value="Medico">Medico</option>
+              <option value="Capo Squadra">Capo Squadra</option>
+              <option value="Operatore Centrale">Operatore Centrale</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600">Password Provvisoria</label>
+            <div class="flex gap-1 mt-1">
+              <input type="text" id="nuovo-op-pass" required placeholder="Password" class="w-full border p-2 rounded text-sm">
+              <button type="button" onclick="generaPassProvvisoria()" class="bg-gray-200 hover:bg-gray-300 text-xs px-2 rounded font-bold" title="Genera password temporanea">Crea</button>
+            </div>
+          </div>
+          <div class="md:col-span-4 flex justify-end mt-2">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded text-sm transition"><i class="fa-solid fa-plus mr-1"></i> Aggiungi Operatore</button>
+          </div>
+        </form>
+
+        <!-- Tabella Operatori -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr class="bg-gray-100 text-gray-700 border-b">
+                <th class="p-2">Nome</th>
+                <th class="p-2">Username</th>
+                <th class="p-2">Ruolo</th>
+                <th class="p-2">Tipo Pass</th>
+                <th class="p-2">Stato</th>
+                <th class="p-2 text-right">Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="lista-operatori"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tabella Prenotazioni -->
+      <div class="bg-white p-6 rounded-lg shadow space-y-4">
+        <h3 class="font-bold text-gray-800 text-lg border-b pb-2"><i class="fa-solid fa-clipboard-list text-cri-red mr-2"></i> Richieste Prenotazioni Ricevute</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr class="bg-gray-100 text-gray-700 border-b">
+                <th class="p-2">Data/Ora</th>
+                <th class="p-2">Nome RP</th>
+                <th class="p-2">Tag Discord</th>
+                <th class="p-2">Tipo Visita</th>
+                <th class="p-2">Note</th>
+                <th class="p-2">Stato</th>
+                <th class="p-2 text-right">Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="lista-prenotazioni"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal Cambio Password Operatore -->
+  <div id="modal-cambio-pass" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4">
+      <h3 class="text-lg font-bold text-gray-800">Imposta Password Definitiva</h3>
+      <form onsubmit="salvaNuovaPasswordOp(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-600">Nuova Password</label>
+          <input type="password" id="nuova-pass-op" required class="w-full border p-2 rounded text-sm mt-1 outline-none focus:ring-2 focus:ring-red-500">
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="chiudiModalPass()" class="px-3 py-1.5 border rounded text-sm hover:bg-gray-100">Annulla</button>
+          <button type="submit" class="bg-cri-red text-white font-bold px-4 py-1.5 rounded text-sm hover:bg-red-700 transition">Salva Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Cambio Credenziali Admin -->
+  <div id="modal-cred-admin" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4">
+      <h3 class="text-lg font-bold text-gray-800">Cambia Credenziali Amministratore</h3>
+      <form onsubmit="salvaCredenzialiAdmin(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-600">Nuovo Username Admin</label>
+          <input type="text" id="nuovo-admin-user" required class="w-full border p-2 rounded text-sm mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600">Nuova Password Admin</label>
+          <input type="password" id="nuova-admin-pass" required class="w-full border p-2 rounded text-sm mt-1">
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="chiudiModalAdmin()" class="px-3 py-1.5 border rounded text-sm hover:bg-gray-100">Annulla</button>
+          <button type="submit" class="bg-gray-800 text-white font-bold px-4 py-1.5 rounded text-sm hover:bg-gray-900 transition">Aggiorna Credenziali</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Inizializzazione Dati
+    let appData = {
+      adminUser: localStorage.getItem('cri_admin_user') || 'admin',
+      adminPass: localStorage.getItem('cri_admin_pass') || 'admin123',
+      webhookUrl: localStorage.getItem('cri_webhook_url') || '',
+      operatori: JSON.parse(localStorage.getItem('cri_operatori')) || [
+        { id: 1, nome: 'Mario Rossi', user: 'm.rossi', pass: 'CRI-2024', provvisoria: true, ruolo: 'Soccorritore', inServizio: false, inizioTurno: null }
+      ],
+      prenotazioni: JSON.parse(localStorage.getItem('cri_prenotazioni')) || []
+    };
+
+    let sessioneCorrente = null;
+    let timerInterval = null;
+
+    function salvaTutto() {
+      localStorage.setItem('cri_admin_user', appData.adminUser);
+      localStorage.setItem('cri_admin_pass', appData.adminPass);
+      localStorage.setItem('cri_webhook_url', appData.webhookUrl);
+      localStorage.setItem('cri_operatori', JSON.stringify(appData.operatori));
+      localStorage.setItem('cri_prenotazioni', JSON.stringify(appData.prenotazioni));
+    }
+
+    function showSection(secId) {
+      const sezioni = ['home', 'prenota', 'login-op', 'dash-op', 'login-admin', 'dash-admin'];
+      sezioni.forEach(s => document.getElementById('sec-' + s).classList.add('hidden'));
+      document.getElementById('sec-' + secId).classList.remove('hidden');
+
+      if (secId === 'dash-admin') renderAdmin();
+      if (secId === 'dash-op') renderOpDashboard();
+    }
+
+    function quickBook(tipo) {
+      document.getElementById('prenota-tipo').value = tipo;
+      showSection('prenota');
+    }
+
+    // PRENOTAZIONI
+    async function salvaPrenotazione(e) {
+      e.preventDefault();
+      const nuovaPrenotazione = {
+        id: Date.now(),
+        data: new Date().toLocaleString('it-IT'),
+        nome: document.getElementById('prenota-nome').value,
+        discord: document.getElementById('prenota-discord').value,
+        tipo: document.getElementById('prenota-tipo').value,
+        note: document.getElementById('prenota-note').value,
+        stato: 'In Attesa'
+      };
+
+      appData.prenotazioni.unshift(nuovaPrenotazione);
+      salvaTutto();
+
+      // Notifica Discord se configurata
+      if (appData.webhookUrl) {
+        inviaDiscordEmbed(nuovaPrenotazione);
+      }
+
+      alert('Prenotazione inviata con successo! Verrai contattato su Discord.');
+      document.getElementById('form-prenotazione').reset();
+      showSection('home');
+    }
+
+    async function inviaDiscordEmbed(p) {
+      const payload = {
+        embeds: [{
+          title: "🚨 Nuova Richiesta Visita Medica RP",
+          color: 14222377, // Rosso CRI
+          fields: [
+            { name: "Nome RP", value: p.nome, inline: true },
+            { name: "Tag Discord", value: p.discord, inline: true },
+            { name: "Tipo Certificato", value: p.tipo, inline: true },
+            { name: "Note", value: p.note || "Nessuna nota", inline: false }
+          ],
+          footer: { text: "Portale CRI RP • Data: " + p.data }
+        }]
+      };
+
+      try {
+        await fetch(appData.webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn("Errore invio webhook:", err);
+      }
+    }
+
+    // AUTH ADMIN
+    function loginAdmin(e) {
+      e.preventDefault();
+      const u = document.getElementById('admin-user').value;
+      const p = document.getElementById('admin-pass').value;
+
+      if (u === appData.adminUser && p === appData.adminPass) {
+        sessioneCorrente = { tipo: 'admin' };
+        showSection('dash-admin');
+      } else {
+        alert('Credenziali Admin non valide!');
+      }
+    }
+
+    function renderAdmin() {
+      document.getElementById('discord-webhook-url').value = appData.webhookUrl;
+
+      // Render Operatori
+      const tbodyOp = document.getElementById('lista-operatori');
+      tbodyOp.innerHTML = appData.operatori.map(o => `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="p-2 font-semibold">${o.nome}</td>
+          <td class="p-2">${o.user}</td>
+          <td class="p-2"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold">${o.ruolo}</span></td>
+          <td class="p-2">${o.provvisoria ? '<span class="text-amber-600 font-bold text-xs">Provvisoria</span>' : '<span class="text-green-600 text-xs">Definitiva</span>'}</td>
+          <td class="p-2">${o.inServizio ? '<span class="text-green-600 font-bold text-xs">In Servizio</span>' : '<span class="text-gray-400 text-xs">Fuori Servizio</span>'}</td>
+          <td class="p-2 text-right space-x-1">
+            <button onclick="resetPassOp(${o.id})" class="bg-amber-500 text-white text-xs px-2 py-1 rounded hover:bg-amber-600" title="Resetta Password">Resetta Pass</button>
+            <button onclick="eliminaOp(${o.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-700">Elimina</button>
+          </td>
+        </tr>
+      `).join('');
+
+      // Render Prenotazioni
+      const tbodyPre = document.getElementById('lista-prenotazioni');
+      tbodyPre.innerHTML = appData.prenotazioni.map(p => `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="p-2 text-xs text-gray-500">${p.data}</td>
+          <td class="p-2 font-bold">${p.nome}</td>
+          <td class="p-2 text-indigo-600 font-semibold">${p.discord}</td>
+          <td class="p-2">${p.tipo}</td>
+          <td class="p-2 text-xs text-gray-600">${p.note || '-'}</td>
+          <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${p.stato === 'Accettata' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">${p.stato}</span></td>
+          <td class="p-2 text-right space-x-1">
+            <button onclick="cambiaStatoPrenotazione(${p.id}, 'Accettata')" class="bg-green-600 text-white text-xs px-2 py-1 rounded hover:bg-green-700">Accetta</button>
+            <button onclick="eliminaPrenotazione(${p.id})" class="bg-gray-400 text-white text-xs px-2 py-1 rounded hover:bg-gray-500">x</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function generaPassProvvisoria() {
+      const pass = 'CRI-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+      document.getElementById('nuovo-op-pass').value = pass;
+    }
+
+    function creaOperatore(e) {
+      e.preventDefault();
+      const nuovo = {
+        id: Date.now(),
+        nome: document.getElementById('nuovo-op-nome').value,
+        user: document.getElementById('nuovo-op-user').value,
+        pass: document.getElementById('nuovo-op-pass').value,
+        provvisoria: true,
+        ruolo: document.getElementById('nuovo-op-ruolo').value,
+        inServizio: false,
+        inizioTurno: null
+      };
+
+      appData.operatori.push(nuovo);
+      salvaTutto();
+      renderAdmin();
+      alert('Operatore creato con successo!');
+      e.target.reset();
+    }
+
+    function resetPassOp(id) {
+      const op = appData.operatori.find(o => o.id === id);
+      if (op) {
+        const nuova = 'CRI-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        op.pass = nuova;
+        op.provvisoria = true;
+        salvaTutto();
+        renderAdmin();
+        alert(`Nuova password provvisoria per ${op.nome}: ${nuova}`);
+      }
+    }
+
+    function eliminaOp(id) {
+      if (!confirm('Sei sicuro di voler eliminare questo operatore?')) return;
+      appData.operatori = appData.operatori.filter(o => o.id !== id);
+      salvaTutto();
+      renderAdmin();
+    }
+
+    function cambiaStatoPrenotazione(id, stato) {
+      const pre = appData.prenotazioni.find(p => p.id === id);
+      if (pre) {
+        pre.stato = stato;
+        salvaTutto();
+        renderAdmin();
+      }
+    }
+
+    function eliminaPrenotazione(id) {
+      appData.prenotazioni = appData.prenotazioni.filter(p => p.id !== id);
+      salvaTutto();
+      renderAdmin();
+    }
+
+    function salvaWebhook() {
+      appData.webhookUrl = document.getElementById('discord-webhook-url').value;
+      salvaTutto();
+      alert('Webhook salvato correttamente!');
+    }
+
+    function testWebhook() {
+      if (!appData.webhookUrl) return alert('Inserisci prima un URL di Webhook!');
+      inviaDiscordEmbed({
+        nome: "Mario Rossi (TEST)",
+        discord: "@test_user",
+        tipo: "Test Webhook",
+        note: "Questo è un messaggio di prova dal gestore CRI RP.",
+        data: new Date().toLocaleString('it-IT')
+      });
+      alert('Messaggio di prova inviato! Controlla il tuo canale Discord.');
+    }
+
+    // AUTH OPERATORE
+    function loginOperatore(e) {
+      e.preventDefault();
+      const u = document.getElementById('op-user').value;
+      const p = document.getElementById('op-pass').value;
+
+      const op = appData.operatori.find(o => o.user === u && o.pass === p);
+      if (op) {
+        sessioneCorrente = { tipo: 'operatore', user: op };
+        showSection('dash-op');
+      } else {
+        alert('Username o Password non corretti!');
+      }
+    }
+
+    function renderOpDashboard() {
+      const op = sessioneCorrente.user;
+      document.getElementById('op-welcome-name').textContent = 'Benvenuto, ' + op.nome;
+      document.getElementById('op-badge-ruolo').textContent = op.ruolo;
+
+      // Banner pass provvisoria
+      if (op.provvisoria) {
+        document.getElementById('banner-pass-provvisoria').classList.remove('hidden');
+      } else {
+        document.getElementById('banner-pass-provvisoria').classList.add('hidden');
+      }
+
+      // Stato Servizio
+      const btnIn = document.getElementById('btn-in-servizio');
+      const btnOut = document.getElementById('btn-out-servizio');
+      const badgeStato = document.getElementById('op-stato-badge');
+      const timerBox = document.getElementById('box-timer-servizio');
+
+      if (op.inServizio) {
+        badgeStato.textContent = 'In Servizio';
+        badgeStato.className = 'bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded';
+        btnIn.disabled = true;
+        btnIn.classList.add('opacity-50');
+        btnOut.disabled = false;
+        btnOut.classList.remove('opacity-50');
+        timerBox.classList.remove('hidden');
+        avviaTimer();
+      } else {
+        badgeStato.textContent = 'Fuori Servizio';
+        badgeStato.className = 'bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded';
+        btnIn.disabled = false;
+        btnIn.classList.remove('opacity-50');
+        btnOut.disabled = true;
+        btnOut.classList.add('opacity-50');
+        timerBox.classList.add('hidden');
+        fermaTimer();
+      }
+    }
+
+    function toggleServizio(stato) {
+      const op = sessioneCorrente.user;
+      op.inServizio = stato;
+      op.inizioTurno = stato ? Date.now() : null;
+
+      // Aggiorna anche nell'array principale
+      const opInDb = appData.operatori.find(o => o.id === op.id);
+      if (opInDb) {
+        opInDb.inServizio = stato;
+        opInDb.inizioTurno = op.inizioTurno;
+      }
+
+      salvaTutto();
+      renderOpDashboard();
+    }
+
+    function avviaTimer() {
+      fermaTimer();
+      timerInterval = setInterval(() => {
+        if (!sessioneCorrente || !sessioneCorrente.user.inizioTurno) return;
+        const diff = Math.floor((Date.now() - sessioneCorrente.user.inizioTurno) / 1000);
+        const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+        const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+        const s = String(diff % 60).padStart(2, '0');
+        document.getElementById('timer-display').textContent = `${h}:${m}:${s}`;
+      }, 1000);
+    }
+
+    function fermaTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+    }
+
+    // MODALI
+    function apriModalCambioPass() { document.getElementById('modal-cambio-pass').classList.remove('hidden'); }
+    function chiudiModalPass() { document.getElementById('modal-cambio-pass').classList.add('hidden'); }
+
+    function salvaNuovaPasswordOp(e) {
+      e.preventDefault();
+      const nuova = document.getElementById('nuova-pass-op').value;
+      sessioneCorrente.user.pass = nuova;
+      sessioneCorrente.user.provvisoria = false;
+
+      const opInDb = appData.operatori.find(o => o.id === sessioneCorrente.user.id);
+      if (opInDb) {
+        opInDb.pass = nuova;
+        opInDb.provvisoria = false;
+      }
+
+      salvaTutto();
+      chiudiModalPass();
+      renderOpDashboard();
+      alert('Password aggiornata con successo!');
+    }
+
+    function apriModalCredenzialiAdmin() { 
+      document.getElementById('nuovo-admin-user').value = appData.adminUser;
+      document.getElementById('modal-cred-admin').classList.remove('hidden'); 
+    }
+    function chiudiModalAdmin() { document.getElementById('modal-cred-admin').classList.add('hidden'); }
+
+    function salvaCredenzialiAdmin(e) {
+      e.preventDefault();
+      appData.adminUser = document.getElementById('nuovo-admin-user').value;
+      appData.adminPass = document.getElementById('nuova-admin-pass').value;
+      salvaTutto();
+      chiudiModalAdmin();
+      alert('Credenziali Amministratore aggiornate!');
+    }
+
+    function logout() {
+      sessioneCorrente = null;
+      fermaTimer();
+      showSection('home');
+    }
+  </script>
+</body>
+</html>
