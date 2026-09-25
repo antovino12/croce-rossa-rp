@@ -395,6 +395,7 @@
             <div class="flex gap-2">
               <input type="url" id="discord-webhook-url" placeholder="https://discord.com/api/webhooks/..." class="flex-1 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500">
               <button onclick="salvaWebhook()" class="bg-indigo-600 text-white px-3 py-2 rounded font-bold text-xs hover:bg-indigo-700 transition">Salva</button>
+              <button onclick="testWebhook()" class="bg-gray-200 text-gray-800 px-3 py-2 rounded font-bold text-xs hover:bg-gray-300 transition">Test</button>
             </div>
           </div>
           <div>
@@ -402,6 +403,7 @@
             <div class="flex gap-2">
               <input type="url" id="discord-webhook-anamnestici-url" placeholder="https://discord.com/api/webhooks/..." class="flex-1 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500">
               <button onclick="salvaWebhookAnamnestici()" class="bg-indigo-600 text-white px-3 py-2 rounded font-bold text-xs hover:bg-indigo-700 transition">Salva</button>
+              <button onclick="testWebhookAnamnestici()" class="bg-gray-200 text-gray-800 px-3 py-2 rounded font-bold text-xs hover:bg-gray-300 transition">Test</button>
             </div>
           </div>
         </div>
@@ -1115,6 +1117,37 @@
       renderAdmin();
     }
 
+    function testWebhook() {
+      if (!appData.webhookUrl) return alert('Inserisci prima un URL di Webhook per Prenotazioni/Farmacia!');
+      inviaDiscordEmbedVisita({
+        codice: "CRI-TEST",
+        nome: "Mario Rossi (TEST)",
+        discord: "@test_user",
+        tipo: "Test Webhook",
+        dataPreferita: "Oggi",
+        orarioPreferito: "Adesso",
+        note: "Messaggio di prova dal gestore CRI RP.",
+        dataInvio: new Date().toLocaleString('it-IT')
+      });
+      alert('Messaggio di prova inviato sul canale Prenotazioni/Farmacia!');
+    }
+
+    function testWebhookAnamnestici() {
+      const target = appData.webhookAnamnesticiUrl || appData.webhookUrl;
+      if (!target) return alert('Inserisci prima un URL di Webhook per i Certificati Anamnestici!');
+      inviaDiscordEmbedAnamnestico({
+        codice: "ANA-TEST",
+        data: new Date().toLocaleString('it-IT'),
+        paziente: "Mario Rossi (TEST)",
+        discord: "@test_user",
+        tipo: "Certificato Anamnestico per Porto d'Armi",
+        esito: "Idoneo",
+        note: "Test invio certificato anamnestico.",
+        operatore: "Dott. Test"
+      }, target);
+      alert('Messaggio di prova inviato sul canale Anamnestici!');
+    }
+
     // ADMIN - GESTIONE FARMACO
     function aggiungiFarmaco(e) {
       e.preventDefault();
@@ -1322,7 +1355,6 @@
             durataSecondi: secondiTotaliDelta
           });
         } else {
-          // Rimuovi ore scalando dai turni esistenti o creando un turno negativo compensativo
           op.turni.push({
             inizio: 'Storno Admin',
             fine: new Date().toLocaleString('it-IT'),
@@ -1516,12 +1548,10 @@
         fermaTimer();
       }
 
-      // Imposta bozza note iniziale se vuota
       if (!document.getElementById('cert-note').value) {
         applicaBozzaAdmin();
       }
 
-      // Render Storico Personale dell'Operatore Loggato
       const tbodyOpStorico = document.getElementById('lista-storico-op-personale');
       let totaleSecondiOp = 0;
 
@@ -1549,15 +1579,17 @@
       const opInDb = appData.operatori.find(o => o.id === op.id);
 
       if (stato) {
-        if (op.inServizio) return; // Già in servizio, evita doppi avvii
+        if (op.inServizio) return;
+        const oraAttuale = Date.now();
         op.inServizio = true;
-        op.inizioTurno = Date.now();
+        op.inizioTurno = oraAttuale;
         if (opInDb) {
           opInDb.inServizio = true;
-          opInDb.inizioTurno = op.inizioTurno;
+          opInDb.inizioTurno = oraAttuale;
         }
       } else {
-        if (!op.inServizio || !op.inizioTurno) return; // Non in servizio, evita chiusure duplicate
+        if (!op.inServizio || !op.inizioTurno) return;
+
         const durataSecondi = Math.floor((Date.now() - op.inizioTurno) / 1000);
         if (durataSecondi > 0) {
           const nuovoTurno = {
@@ -1574,6 +1606,7 @@
             opInDb.turni.push(nuovoTurno);
           }
         }
+
         op.inServizio = false;
         op.inizioTurno = null;
         if (opInDb) {
@@ -1603,7 +1636,6 @@
       document.getElementById('timer-display').textContent = "00:00:00";
     }
 
-    // MODALI
     function apriModalCambioPass() { document.getElementById('modal-cambio-pass').classList.remove('hidden'); }
     function chiudiModalPass() { document.getElementById('modal-cambio-pass').classList.add('hidden'); }
 
