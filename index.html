@@ -726,7 +726,6 @@
       return [];
     }
 
-    // Formattazione Tempo Preciso
     function formattaTempoPreciso(secondiTotali) {
       if (!secondiTotali || secondiTotali <= 0) return "0 ore e 0 min";
       const h = Math.floor(secondiTotali / 3600);
@@ -773,14 +772,16 @@
         if (data.webhookRefertiUrl !== undefined) appData.webhookRefertiUrl = data.webhookRefertiUrl;
         if (data.bozzaRefertoText !== undefined) appData.bozzaRefertoText = data.bozzaRefertoText;
         
-        appData.operatori = normalizzaArray(data.operatori).map(o => ({
-          ...o,
-          turni: normalizzaArray(o.turni)
-        }));
-        appData.prenotazioni = normalizzaArray(data.prenotazioni);
-        appData.farmacia = normalizzaArray(data.farmacia);
-        appData.ordiniFarmacia = normalizzaArray(data.ordiniFarmacia);
-        appData.refertiEmessi = normalizzaArray(data.refertiEmessi);
+        if (data.operatori) {
+          appData.operatori = normalizzaArray(data.operatori).map(o => ({
+            ...o,
+            turni: normalizzaArray(o.turni)
+          }));
+        }
+        if (data.prenotazioni) appData.prenotazioni = normalizzaArray(data.prenotazioni);
+        if (data.farmacia) appData.farmacia = normalizzaArray(data.farmacia);
+        if (data.ordiniFarmacia) appData.ordiniFarmacia = normalizzaArray(data.ordiniFarmacia);
+        if (data.refertiEmessi) appData.refertiEmessi = normalizzaArray(data.refertiEmessi);
       } else {
         salvaTuttoCloud();
       }
@@ -826,7 +827,7 @@
       if (!cod) return;
 
       if (cod.startsWith('CRI-')) {
-        const p = appData.prenotazioni.find(item => item.codice === cod);
+        const p = normalizzaArray(appData.prenotazioni).find(item => item.codice === cod);
         if (p) {
           let colorClass = 'bg-amber-100 text-amber-800';
           if (p.stato === 'Accettata') colorClass = 'bg-blue-100 text-blue-800';
@@ -838,7 +839,7 @@
           return;
         }
       } else if (cod.startsWith('FAR-')) {
-        const o = appData.ordiniFarmacia.find(item => item.codice === cod);
+        const o = normalizzaArray(appData.ordiniFarmacia).find(item => item.codice === cod);
         if (o) {
           let colorClass = 'bg-amber-100 text-amber-800';
           if (o.stato === 'In Consegna') colorClass = 'bg-blue-100 text-blue-800';
@@ -850,7 +851,7 @@
           return;
         }
       } else if (cod.startsWith('REF-')) {
-        const r = appData.refertiEmessi.find(item => item.codice === cod);
+        const r = normalizzaArray(appData.refertiEmessi).find(item => item.codice === cod);
         if (r) {
           box.classList.add('bg-teal-100', 'text-teal-800');
           box.innerHTML = `<i class="fa-solid fa-file-signature mr-1"></i> Referto Medico <strong>${r.codice}</strong> (${r.tipoCertificato}) per <strong>${r.pazienteNome}</strong>: <span class="uppercase font-bold">${r.esito}</span> (Rilasciato da:${r.medicoNome})`;
@@ -878,6 +879,7 @@
         stato: 'In Attesa'
       };
 
+      appData.prenotazioni = normalizzaArray(appData.prenotazioni);
       appData.prenotazioni.unshift(nuovaPrenotazione);
       salvaTuttoCloud();
 
@@ -990,6 +992,7 @@
         stato: 'In Attesa'
       };
 
+      appData.ordiniFarmacia = normalizzaArray(appData.ordiniFarmacia);
       appData.ordiniFarmacia.unshift(nuovoOrdine);
       salvaTuttoCloud();
 
@@ -1046,6 +1049,7 @@
         testoNote: document.getElementById('ref-testo-note').value
       };
 
+      appData.refertiEmessi = normalizzaArray(appData.refertiEmessi);
       appData.refertiEmessi.unshift(nuovoReferto);
       salvaTuttoCloud();
 
@@ -1101,6 +1105,7 @@
         descrizione: document.getElementById('farmaco-desc').value
       };
 
+      appData.farmacia = normalizzaArray(appData.farmacia);
       appData.farmacia.push(nuovo);
       salvaTuttoCloud();
       renderAdmin();
@@ -1109,13 +1114,13 @@
     }
 
     function eliminaFarmaco(id) {
-      appData.farmacia = appData.farmacia.filter(f => f.id !== id);
+      appData.farmacia = normalizzaArray(appData.farmacia).filter(f => f.id !== id);
       salvaTuttoCloud();
       renderAdmin();
     }
 
     function cambiaStatoOrdineFarmacia(id, stato) {
-      const o = appData.ordiniFarmacia.find(item => item.id === id);
+      const o = normalizzaArray(appData.ordiniFarmacia).find(item => item.id === id);
       if (o) {
         o.stato = stato;
         salvaTuttoCloud();
@@ -1124,14 +1129,14 @@
     }
 
     function eliminaOrdineFarmacia(id) {
-      appData.ordiniFarmacia = appData.ordiniFarmacia.filter(item => item.id !== id);
+      appData.ordiniFarmacia = normalizzaArray(appData.ordiniFarmacia).filter(item => item.id !== id);
       salvaTuttoCloud();
       renderAdmin();
     }
 
     function eliminaReferto(id) {
       if (!confirm('Eliminare il referto dal registro?')) return;
-      appData.refertiEmessi = appData.refertiEmessi.filter(r => r.id !== id);
+      appData.refertiEmessi = normalizzaArray(appData.refertiEmessi).filter(r => r.id !== id);
       salvaTuttoCloud();
       renderAdmin();
     }
@@ -1385,9 +1390,7 @@
         turni: []
       };
 
-      if (!Array.isArray(appData.operatori)) {
-        appData.operatori = normalizzaArray(appData.operatori);
-      }
+      appData.operatori = normalizzaArray(appData.operatori);
       appData.operatori.push(nuovo);
       salvaTuttoCloud();
       renderAdmin();
