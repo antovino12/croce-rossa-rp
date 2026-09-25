@@ -975,7 +975,6 @@
         return;
       }
 
-      // Raggruppa per Categoria
       const categorieMap = {};
       appData.listinoPrezzi.forEach(item => {
         const cat = item.categoria || 'Generale';
@@ -1099,7 +1098,6 @@
 
       alert(`Ordine multiplo inviato con successo!\nIL TUO CODICE ORDINE È: ${codFarm}\nTOTALE DA PAGARE IN-GAME:${totaleStr}\nPresenta il codice al personale della Croce Rossa per il ritiro.`);
       
-      // Reset campi carrello
       appData.farmacia.forEach(f => {
         const inputQta = document.getElementById(`qta-farmaco-${f.id}`);
         if (inputQta) inputQta.value = 0;
@@ -1332,7 +1330,6 @@
       document.getElementById('discord-webhook-anamnestici-url').value = appData.webhookAnamnesticiUrl || '';
       document.getElementById('admin-bozza-note').value = appData.bozzaNoteAdmin || '';
 
-      // Statistiche
       document.getElementById('stat-prenotazioni').textContent = appData.prenotazioni.length;
       document.getElementById('stat-ordini-farmacia').textContent = appData.ordiniFarmacia.length;
       document.getElementById('stat-op-servizio').textContent = appData.operatori.filter(o => o.inServizio).length;
@@ -1343,7 +1340,6 @@
       });
       document.getElementById('stat-ore-totali').textContent = formattaTempoPreciso(totaleSecondiTutti);
 
-      // Render Listino Admin
       const tbodyListino = document.getElementById('lista-listino-admin');
       tbodyListino.innerHTML = appData.listinoPrezzi.map(l => `
         <tr class="border-b hover:bg-gray-50">
@@ -1356,7 +1352,6 @@
         </tr>
       `).join('');
 
-      // Render Farmaci Admin
       const tbodyFarm = document.getElementById('lista-farmaci-admin');
       tbodyFarm.innerHTML = appData.farmacia.map(f => `
         <tr class="border-b hover:bg-gray-50">
@@ -1369,7 +1364,6 @@
         </tr>
       `).join('');
 
-      // Render Ordini Farmacia Admin (Multi-Prodotto supportato)
       const tbodyOrd = document.getElementById('lista-ordini-farmacia-admin');
       tbodyOrd.innerHTML = appData.ordiniFarmacia.map(o => `
         <tr class="border-b hover:bg-gray-50">
@@ -1389,7 +1383,6 @@
         </tr>
       `).join('');
 
-      // Render Certificati Anamnestici Admin
       const tbodyCert = document.getElementById('lista-certificati-admin');
       if (!appData.certificatiAnamnestici || appData.certificatiAnamnestici.length === 0) {
         tbodyCert.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-gray-500">Nessun certificato anamnestico emesso.</td></tr>`;
@@ -1416,7 +1409,6 @@
         }).join('');
       }
 
-      // Render Operatori con Tempo Preciso e Pulsante Modifica Ore
       const tbodyOp = document.getElementById('lista-operatori');
       tbodyOp.innerHTML = appData.operatori.map(o => {
         let secOp = 0;
@@ -1441,7 +1433,6 @@
         `;
       }).join('');
 
-      // Render Prenotazioni Visite
       const tbodyPre = document.getElementById('lista-prenotazioni');
       tbodyPre.innerHTML = appData.prenotazioni.map(p => `
         <tr class="border-b hover:bg-gray-50">
@@ -1517,7 +1508,6 @@
       }
     }
 
-    // MODIFICA RUOLO / PROMOZIONE OPERATORE
     function modificaRuoloOp(id) {
       const op = appData.operatori.find(o => o.id === id);
       if (op) {
@@ -1531,7 +1521,6 @@
       }
     }
 
-    // STORICO TURNI OPERATORE (ADMIN MODAL)
     function apriStoricoTurni(opId) {
       const op = appData.operatori.find(o => o.id === opId);
       if (!op) return;
@@ -1731,9 +1720,18 @@
         if (!op.inServizio || !op.inizioTurno) return;
 
         const durataSecondi = Math.floor((Date.now() - op.inizioTurno) / 1000);
+        
+        // Resetta immediatamente i flag per evitare qualsiasi doppio click o rientro multiplo
+        op.inServizio = false;
+        op.inizioTurno = null;
+        if (opInDb) {
+          opInDb.inServizio = false;
+          opInDb.inizioTurno = null;
+        }
+
         if (durataSecondi > 0) {
           const nuovoTurno = {
-            inizio: new Date(op.inizioTurno).toLocaleString('it-IT'),
+            inizio: new Date(Date.now() - (durataSecondi * 1000)).toLocaleString('it-IT'),
             fine: new Date().toLocaleString('it-IT'),
             durataSecondi: durataSecondi
           };
@@ -1742,16 +1740,8 @@
           op.turni.push(nuovoTurno);
 
           if (opInDb) {
-            if (!opInDb.turni) opInDb.turni = [];
-            opInDb.turni.push(nuovoTurno);
+            opInDb.turni = op.turni; // Sostituzione diretta per prevenire array duplicati
           }
-        }
-
-        op.inServizio = false;
-        op.inizioTurno = null;
-        if (opInDb) {
-          opInDb.inServizio = false;
-          opInDb.inizioTurno = null;
         }
       }
 
