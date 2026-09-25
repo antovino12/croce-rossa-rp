@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -77,12 +76,12 @@
         </div>
       </div>
 
-      <!-- Verifica Codice Prenotazione o Ordine -->
+      <!-- Verifica Codice Prenotazione, Ordine o Referto -->
       <div class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-600 max-w-2xl mx-auto space-y-3">
-        <h3 class="font-bold text-gray-800 text-lg flex items-center"><i class="fa-solid fa-magnifying-glass text-blue-600 mr-2"></i> Verifica Stato Prenotazione o Ordine Farmacia</h3>
-        <p class="text-xs text-gray-500">Inserisci il codice univoco della tua prenotazione (es. CRI-8492) o del tuo ordine farmacia (es. FAR-1029) per verificarne lo stato.</p>
+        <h3 class="font-bold text-gray-800 text-lg flex items-center"><i class="fa-solid fa-magnifying-glass text-blue-600 mr-2"></i> Verifica Stato Prenotazione, Ordine o Referto</h3>
+        <p class="text-xs text-gray-500">Inserisci il codice univoco della tua prenotazione (es. CRI-8492), dell'ordine farmacia (es. FAR-1029) o del referto (es. REF-4820).</p>
         <div class="flex gap-2">
-          <input type="text" id="check-codice-input" placeholder="Es. CRI-1234 o FAR-5678" class="flex-1 border p-2 rounded text-sm uppercase outline-none focus:ring-2 focus:ring-blue-500">
+          <input type="text" id="check-codice-input" placeholder="Es. CRI-1234, FAR-5678 o REF-9012" class="flex-1 border p-2 rounded text-sm uppercase outline-none focus:ring-2 focus:ring-blue-500">
           <button onclick="verificaStatoGenerale()" class="bg-blue-600 text-white font-bold px-4 py-2 rounded text-sm hover:bg-blue-700 transition">Verifica</button>
         </div>
         <div id="esito-codice" class="hidden p-3 rounded text-sm font-semibold mt-2"></div>
@@ -269,6 +268,61 @@
         <span class="text-xs text-gray-400 mt-2">I dati sul tempo lavorato vengono salvati automaticamente nel tuo storico turni.</span>
       </div>
 
+      <!-- SEZIONE EMISSIONE REFERTI ANAMNESTICI (OPERATORE) -->
+      <div class="bg-white p-6 rounded-lg shadow space-y-4 border-l-4 border-teal-600">
+        <h3 class="font-bold text-gray-800 text-lg border-b pb-2 flex items-center justify-between">
+          <span><i class="fa-solid fa-file-signature text-teal-600 mr-2"></i> Emissione Referto / Certificato Anamnestico</span>
+          <span class="text-xs text-gray-500 font-normal">Invia il referto direttamente sul canale Discord dedicato</span>
+        </h3>
+        <form onsubmit="emettiRefertoSanitario(event)" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-600">Nome e Cognome Paziente RP</label>
+              <input type="text" id="ref-paziente-nome" required placeholder="Es. Giuseppe Verdi" class="w-full border p-2 rounded text-sm mt-1">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600">Tag Discord Paziente</label>
+              <input type="text" id="ref-paziente-discord" required placeholder="@paziente" class="w-full border p-2 rounded text-sm mt-1">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600">Tipo di Certificazione</label>
+              <select id="ref-tipo-certificato" required class="w-full border p-2 rounded text-sm mt-1 bg-white">
+                <option value="Certificato Anamnestico per Porto d'Armi">Porto d'Armi</option>
+                <option value="Certificato Anamnestico per Idoneità Lavorativa">Idoneità Lavorativa</option>
+                <option value="Certificato Anamnestico per Arruolamento in FdO">Arruolamento FdO</option>
+                <option value="Certificato Sanitario Generico">Certificato Generico</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-600">Esito / Valutazione Medica</label>
+              <select id="ref-esito" required class="w-full border p-2 rounded text-sm mt-1 bg-white font-bold">
+                <option value="IDONEO / FAVOREVOLE 🟢">IDONEO / FAVOREVOLE 🟢</option>
+                <option value="NON IDONEO 🔴">NON IDONEO 🔴</option>
+                <option value="IDONEO CON PRESCRIZIONI 🟡">IDONEO CON PRESCRIZIONI 🟡</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600">Medico / Operatore Emittente</label>
+              <input type="text" id="ref-medico-nome" required placeholder="Es. Dott. Mario Rossi" class="w-full border p-2 rounded text-sm mt-1">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600">Testo / Note del Referto (Bozza Modificabile)</label>
+            <textarea id="ref-testo-note" rows="4" required class="w-full border p-2 rounded text-sm mt-1"></textarea>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2.5 rounded text-sm transition shadow">
+              <i class="fa-solid fa-paper-plane mr-2"></i> Emetti e Invia Referto Sanitario
+            </button>
+          </div>
+        </form>
+      </div>
+
       <!-- STORICO SERVIZI DELL'OPERATORE -->
       <div class="bg-white p-6 rounded-lg shadow space-y-4">
         <h3 class="font-bold text-gray-800 text-lg border-b pb-2 flex items-center justify-between flex-wrap gap-2">
@@ -334,9 +388,9 @@
           <div class="text-xs font-bold text-gray-500 uppercase">Ordini Farmacia</div>
           <div id="stat-ordini-farmacia" class="text-2xl font-bold text-gray-800 mt-1">0</div>
         </div>
-        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-600">
-          <div class="text-xs font-bold text-gray-500 uppercase">Operatori in Servizio</div>
-          <div id="stat-op-servizio" class="text-2xl font-bold text-gray-800 mt-1">0</div>
+        <div class="bg-white p-4 rounded-lg shadow border-l-4 border-teal-600">
+          <div class="text-xs font-bold text-gray-500 uppercase">Referti Emessi</div>
+          <div id="stat-referti-emessi" class="text-2xl font-bold text-gray-800 mt-1">0</div>
         </div>
         <div class="bg-white p-4 rounded-lg shadow border-l-4 border-amber-600">
           <div class="text-xs font-bold text-gray-500 uppercase">Ore Totali Servizio</div>
@@ -344,13 +398,40 @@
         </div>
       </div>
 
-      <!-- Configurazione Discord Webhook -->
-      <div class="bg-white p-6 rounded-lg shadow space-y-3 border-l-4 border-indigo-600">
-        <h3 class="font-bold text-gray-800 flex items-center"><i class="fa-brands fa-discord text-indigo-600 mr-2 text-xl"></i> Configurazione Notifiche Discord</h3>
-        <div class="flex gap-2">
-          <input type="url" id="discord-webhook-url" placeholder="https://discord.com/api/webhooks/..." class="flex-1 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-          <button onclick="salvaWebhook()" class="bg-indigo-600 text-white px-4 py-2 rounded font-bold text-sm hover:bg-indigo-700 transition">Salva Webhook</button>
-          <button onclick="testWebhook()" class="bg-gray-200 text-gray-800 px-3 py-2 rounded font-bold text-sm hover:bg-gray-300 transition">Test</button>
+      <!-- CONFIGURAZIONE WEBHOOK DISCORD (PRENOTAZIONI E DEDICATO REFERTI) -->
+      <div class="bg-white p-6 rounded-lg shadow space-y-4 border-l-4 border-indigo-600">
+        <h3 class="font-bold text-gray-800 flex items-center text-lg"><i class="fa-brands fa-discord text-indigo-600 mr-2 text-xl"></i> Configurazione Webhook Notifiche Discord</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Webhook Prenotazioni e Farmacia</label>
+            <div class="flex gap-2">
+              <input type="url" id="discord-webhook-url" placeholder="https://discord.com/api/webhooks/..." class="flex-1 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <button onclick="testWebhook('generale')" class="bg-gray-200 text-gray-800 px-3 py-2 rounded font-bold text-xs hover:bg-gray-300 transition">Test</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Webhook Canale DEDICATO Referti e Certificati</label>
+            <div class="flex gap-2">
+              <input type="url" id="discord-webhook-referti-url" placeholder="https://discord.com/api/webhooks/..." class="flex-1 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-teal-500">
+              <button onclick="testWebhook('referti')" class="bg-gray-200 text-gray-800 px-3 py-2 rounded font-bold text-xs hover:bg-gray-300 transition">Test</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-1">
+          <button onclick="salvaWebhook()" class="bg-indigo-600 text-white px-6 py-2 rounded font-bold text-sm hover:bg-indigo-700 transition">Salva Configurazione Webhooks</button>
+        </div>
+      </div>
+
+      <!-- BOZZA MODELLO REFERTO ANAMNESTICO (MODIFICABILE DALL'ADMIN) -->
+      <div class="bg-white p-6 rounded-lg shadow space-y-3 border-l-4 border-teal-600">
+        <h3 class="font-bold text-gray-800 flex items-center text-lg"><i class="fa-solid fa-sliders text-teal-600 mr-2"></i> Personalizzazione Bozza Certificato Anamnestico</h3>
+        <p class="text-xs text-gray-500">Imposta il testo base predefinito del referto anamnestico. Gli operatori potranno usarlo come modello durante l'emissione dei certificati.</p>
+        <textarea id="bozza-referto-admin-input" rows="4" class="w-full border p-2.5 rounded text-sm outline-none focus:ring-2 focus:ring-teal-500"></textarea>
+        <div class="flex justify-end">
+          <button onclick="salvaBozzaRefertoAdmin()" class="bg-teal-600 text-white font-bold px-4 py-2 rounded text-sm hover:bg-teal-700 transition">Salva Modello Bozza</button>
         </div>
       </div>
 
@@ -412,6 +493,27 @@
         </div>
       </div>
 
+      <!-- TABELLA REFERTI SANITARI EMESSI -->
+      <div class="bg-white p-6 rounded-lg shadow space-y-4">
+        <h3 class="font-bold text-gray-800 text-lg border-b pb-2"><i class="fa-solid fa-file-signature text-teal-600 mr-2"></i> Registro Referti Anamnestici Emessi</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr class="bg-gray-100 text-gray-700 border-b">
+                <th class="p-2">Codice</th>
+                <th class="p-2">Data/Ora</th>
+                <th class="p-2">Paziente</th>
+                <th class="p-2">Tipo Certificato</th>
+                <th class="p-2">Esito</th>
+                <th class="p-2">Medico</th>
+                <th class="p-2 text-right">Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="lista-referti-admin"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Gestione Operatori & Reset Ore Settimanali -->
       <div class="bg-white p-6 rounded-lg shadow space-y-4">
         <div class="border-b pb-2 flex justify-between items-center flex-wrap gap-2">
@@ -453,7 +555,7 @@
                 <th class="p-2">Ruolo attuale</th>
                 <th class="p-2">Stato Pass</th>
                 <th class="p-2">Tempo Servizio Preciso</th>
-                <th class="p-2 text-right">Azioni / Promozioni</th>
+                <th class="p-2 text-right">Azioni / Gestione Ore</th>
               </tr>
             </thead>
             <tbody id="lista-operatori"></tbody>
@@ -598,6 +700,8 @@
       adminUser: 'admin',
       adminPass: 'admin123',
       webhookUrl: '',
+      webhookRefertiUrl: '',
+      bozzaRefertoText: 'Il sottoscritto medico esaminatore certifica che il paziente è stato sottoposto ad idoneo accertamento anamnestico e clinico visivo, non riscontrando patologie ostative.',
       operatori: [
         { id: 1, nome: 'Mario Rossi', user: 'm.rossi', pass: 'CRI-2024', provvisoria: true, ruolo: 'Soccorritore 118', inServizio: false, inizioTurno: null, turni: [] }
       ],
@@ -606,7 +710,8 @@
         { id: 1, nome: 'Kit Primo Soccorso', prezzo: '50€', descrizione: 'Garze sterili, disinfettante e bende di emergenza.' },
         { id: 2, nome: 'Morfina 10mg', prezzo: '150€', descrizione: 'Analgesico ospedaliero per forti traumi.' }
       ],
-      ordiniFarmacia: []
+      ordiniFarmacia: [],
+      refertiEmessi: []
     };
 
     let sessioneCorrente = null;
@@ -657,10 +762,13 @@
         if (data.adminUser) appData.adminUser = data.adminUser;
         if (data.adminPass) appData.adminPass = data.adminPass;
         if (data.webhookUrl !== undefined) appData.webhookUrl = data.webhookUrl;
+        if (data.webhookRefertiUrl !== undefined) appData.webhookRefertiUrl = data.webhookRefertiUrl;
+        if (data.bozzaRefertoText !== undefined) appData.bozzaRefertoText = data.bozzaRefertoText;
         if (data.operatori) appData.operatori = Object.values(data.operatori).map(o => ({ ...o, turni: o.turni ? Object.values(o.turni) : [] }));
         if (data.prenotazioni) appData.prenotazioni = Object.values(data.prenotazioni);
         if (data.farmacia) appData.farmacia = Object.values(data.farmacia);
         if (data.ordiniFarmacia) appData.ordiniFarmacia = Object.values(data.ordiniFarmacia);
+        if (data.refertiEmessi) appData.refertiEmessi = Object.values(data.refertiEmessi);
       } else {
         salvaTuttoCloud();
       }
@@ -702,7 +810,7 @@
     function verificaStatoGenerale() {
       const cod = document.getElementById('check-codice-input').value.trim().toUpperCase();
       const box = document.getElementById('esito-codice');
-      box.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-amber-100', 'text-amber-800', 'bg-red-100', 'text-red-800', 'bg-blue-100', 'text-blue-800');
+      box.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-amber-100', 'text-amber-800', 'bg-red-100', 'text-red-800', 'bg-blue-100', 'text-blue-800', 'bg-teal-100', 'text-teal-800');
 
       if (!cod) return;
 
@@ -730,10 +838,17 @@
           box.innerHTML = `<i class="fa-solid fa-pills mr-1"></i> Ordine Farmacia <strong>${o.codice}</strong> (${o.farmaco} x${o.qta}) - Totale: <strong>${o.totaleInGame || o.prezzoUnitario || '-'}</strong> - Stato: <span class="uppercase font-bold">${o.stato}</span>`;
           return;
         }
+      } else if (cod.startsWith('REF-')) {
+        const r = appData.refertiEmessi.find(item => item.codice === cod);
+        if (r) {
+          box.classList.add('bg-teal-100', 'text-teal-800');
+          box.innerHTML = `<i class="fa-solid fa-file-signature mr-1"></i> Referto Medico <strong>${r.codice}</strong> (${r.tipoCertificato}) per <strong>${r.pazienteNome}</strong>: <span class="uppercase font-bold">${r.esito}</span> (Rilasciato da:${r.medicoNome})`;
+          return;
+        }
       }
 
       box.classList.add('bg-red-100', 'text-red-800');
-      box.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Nessuna pratica o ordine trovato con il codice <strong>${cod}</strong>.`;
+      box.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Nessuna pratica, ordine o referto trovato con il codice <strong>${cod}</strong>.`;
     }
 
     // SALVATAGGIO PRENOTAZIONE VISITA
@@ -794,7 +909,7 @@
       }
     }
 
-    // FARMACIA - CATALOGO E ORDINI CON CALCOLO TOTALE
+    // FARMACIA - CATALOGO E ORDINI
     function renderFarmaciaPubblica() {
       const container = document.getElementById('catalogo-farmaci-pubblico');
       if (!appData.farmacia || appData.farmacia.length === 0) {
@@ -906,6 +1021,70 @@
       }
     }
 
+    // EMISSIONE REFERTO SANITARIO ANAMNESTICO
+    async function emettiRefertoSanitario(e) {
+      e.preventDefault();
+      const codRef = 'REF-' + Math.floor(1000 + Math.random() * 9000);
+      const nuovoReferto = {
+        id: Date.now(),
+        codice: codRef,
+        dataEmissione: new Date().toLocaleString('it-IT'),
+        pazienteNome: document.getElementById('ref-paziente-nome').value,
+        pazienteDiscord: document.getElementById('ref-paziente-discord').value,
+        tipoCertificato: document.getElementById('ref-tipo-certificato').value,
+        esito: document.getElementById('ref-esito').value,
+        medicoNome: document.getElementById('ref-medico-nome').value,
+        testoNote: document.getElementById('ref-testo-note').value
+      };
+
+      if (!appData.refertiEmessi) appData.refertiEmessi = [];
+      appData.refertiEmessi.unshift(nuovoReferto);
+      salvaTuttoCloud();
+
+      // Invio al canale DEDICATO Referti
+      if (appData.webhookRefertiUrl) {
+        inviaDiscordEmbedReferto(nuovoReferto);
+      } else {
+        alert("⚠️ Avviso: URL Webhook Referti non configurato dall'Admin! Il referto è stato salvato nel database ma non inviato su Discord.");
+      }
+
+      alert(`Referto emesso con successo!\nCODICE REFERTO SANITARIO: ${codRef}\nInviato sul canale Discord dedicato.`);
+      e.target.reset();
+      if (sessioneCorrente) {
+        document.getElementById('ref-medico-nome').value = sessioneCorrente.user.nome;
+        document.getElementById('ref-testo-note').value = appData.bozzaRefertoText || '';
+      }
+    }
+
+    async function inviaDiscordEmbedReferto(r) {
+      const payload = {
+        embeds: [{
+          title: "📄 UFFICIALE: REFERTO SANITARIO / CERTIFICATO ANAMNESTICO",
+          color: r.esito.includes('IDONEO / FAVOREVOLE') ? 65280 : (r.esito.includes('PRESCRIZIONI') ? 16776960 : 16711680),
+          fields: [
+            { name: "Codice Referto", value: `\`${r.codice}\``, inline: true },
+            { name: "Paziente RP", value: r.pazienteNome, inline: true },
+            { name: "Tag Discord Paziente", value: r.pazienteDiscord, inline: true },
+            { name: "Tipo Certificato", value: r.tipoCertificato, inline: false },
+            { name: "Esito Valutazione", value: `**${r.esito}**`, inline: true },
+            { name: "Medico / Emittente", value: r.medicoNome, inline: true },
+            { name: "Relazione e Note Mediche", value: r.testoNote || "Nessuna nota", inline: false }
+          ],
+          footer: { text: "Servizio Sanitario Croce Rossa Italiana • Data Emissione: " + r.dataEmissione }
+        }]
+      };
+
+      try {
+        await fetch(appData.webhookRefertiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn("Errore Webhook Discord Referti:", err);
+      }
+    }
+
     // ADMIN - GESTIONE FARMACO
     function aggiungiFarmaco(e) {
       e.preventDefault();
@@ -944,6 +1123,13 @@
       renderAdmin();
     }
 
+    function eliminaReferto(id) {
+      if (!confirm('Eliminare il referto dal registro?')) return;
+      appData.refertiEmessi = appData.refertiEmessi.filter(r => r.id !== id);
+      salvaTuttoCloud();
+      renderAdmin();
+    }
+
     // AUTH ADMIN
     function loginAdmin(e) {
       e.preventDefault();
@@ -959,11 +1145,14 @@
     }
 
     function renderAdmin() {
-      document.getElementById('discord-webhook-url').value = appData.webhookUrl;
+      document.getElementById('discord-webhook-url').value = appData.webhookUrl || '';
+      document.getElementById('discord-webhook-referti-url').value = appData.webhookRefertiUrl || '';
+      document.getElementById('bozza-referto-admin-input').value = appData.bozzaRefertoText || '';
 
       // Statistiche
       document.getElementById('stat-prenotazioni').textContent = appData.prenotazioni.length;
       document.getElementById('stat-ordini-farmacia').textContent = appData.ordiniFarmacia.length;
+      document.getElementById('stat-referti-emessi').textContent = (appData.refertiEmessi || []).length;
       document.getElementById('stat-op-servizio').textContent = appData.operatori.filter(o => o.inServizio).length;
 
       let totaleSecondiTutti = 0;
@@ -1005,7 +1194,23 @@
         </tr>
       `).join('');
 
-      // Render Operatori con Tempo Preciso e Pulsante Reset Ore
+      // Render Referti Emessi Admin
+      const tbodyRef = document.getElementById('lista-referti-admin');
+      tbodyRef.innerHTML = (appData.refertiEmessi || []).map(r => `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="p-2 font-mono font-bold text-xs text-teal-600">${r.codice}</td>
+          <td class="p-2 text-xs text-gray-500">${r.dataEmissione}</td>
+          <td class="p-2 font-bold">${r.pazienteNome} <br><span class="text-xs text-indigo-600 font-semibold">${r.pazienteDiscord}</span></td>
+          <td class="p-2 text-xs">${r.tipoCertificato}</td>
+          <td class="p-2 text-xs font-bold">${r.esito}</td>
+          <td class="p-2 text-xs">${r.medicoNome}</td>
+          <td class="p-2 text-right">
+            <button onclick="eliminaReferto(${r.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-700">Elimina</button>
+          </td>
+        </tr>
+      `).join('');
+
+      // Render Operatori con Tempo Preciso e Modifica Manuale Ore
       const tbodyOp = document.getElementById('lista-operatori');
       tbodyOp.innerHTML = appData.operatori.map(o => {
         let secOp = 0;
@@ -1021,7 +1226,8 @@
             <td class="p-2 font-mono font-bold text-xs text-indigo-700">${tempoFormattato}</td>
             <td class="p-2 text-right space-x-1">
               <button onclick="modificaRuoloOp(${o.id})" class="bg-blue-600 text-white text-xs px-2 py-1 rounded" title="Promuovi o Modifica Ruolo"><i class="fa-solid fa-user-pen mr-1"></i> Promuovi</button>
-              <button onclick="resettaOreSingoloOp(${o.id})" class="bg-amber-600 text-white text-xs px-2 py-1 rounded" title="Azzera Turni Settimanali"><i class="fa-solid fa-rotate-left mr-1"></i> Resetta Ore</button>
+              <button onclick="modificaOreManualmenteOp(${o.id})" class="bg-teal-600 text-white text-xs px-2 py-1 rounded" title="Aggiungi o togli minuti/ore"><i class="fa-solid fa-clock mr-1"></i> Modifica Ore</button>
+              <button onclick="resettaOreSingoloOp(${o.id})" class="bg-amber-600 text-white text-xs px-2 py-1 rounded" title="Azzera Turni"><i class="fa-solid fa-rotate-left mr-1"></i> Resetta</button>
               <button onclick="apriStoricoTurni(${o.id})" class="bg-indigo-600 text-white text-xs px-2 py-1 rounded" title="Storico Turni">Storico</button>
               <button onclick="resetPassOp(${o.id})" class="bg-amber-500 text-white text-xs px-2 py-1 rounded">Pass</button>
               <button onclick="eliminaOp(${o.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded">x</button>
@@ -1049,6 +1255,38 @@
           </td>
         </tr>
       `).join('');
+    }
+
+    // MODIFICA MANUALE ORE OPERATORE (AGGIUNGI / TOGLI MINUTI)
+    function modificaOreManualmenteOp(id) {
+      const op = appData.operatori.find(o => o.id === id);
+      if (!op) return;
+
+      const risposta = prompt(`Modifica manuale tempo per ${op.nome}.\nInserisci i MINUTI da aggiungere o sottrarre (es. 60 per aggiungere 1 ora, -30 per togliere 30 min):`);
+      if (risposta !== null) {
+        const minuti = parseInt(risposta);
+        if (isNaN(minuti) || minuti === 0) return alert('Valore non valido inserito.');
+
+        const secondi = minuti * 60;
+        if (!op.turni) op.turni = [];
+
+        op.turni.push({
+          inizio: 'Regolazione Admin',
+          fine: new Date().toLocaleString('it-IT'),
+          durataSecondi: secondi
+        });
+
+        salvaTuttoCloud();
+        renderAdmin();
+        alert(`Tempo registrato con successo (${minuti > 0 ? '+' : ''}${minuti} min) per ${op.nome}.`);
+      }
+    }
+
+    // SALVA BOZZA REFERTO ADMIN
+    function salvaBozzaRefertoAdmin() {
+      appData.bozzaRefertoText = document.getElementById('bozza-referto-admin-input').value;
+      salvaTuttoCloud();
+      alert('Modello bozza referto salvato sul Cloud!');
     }
 
     // FUNZIONI RESET ORE SETTIMANALI
@@ -1180,23 +1418,39 @@
 
     function salvaWebhook() {
       appData.webhookUrl = document.getElementById('discord-webhook-url').value;
+      appData.webhookRefertiUrl = document.getElementById('discord-webhook-referti-url').value;
       salvaTuttoCloud();
-      alert('Webhook salvato sul Cloud!');
+      alert('Configurazione Webhooks salvata sul Cloud!');
     }
 
-    function testWebhook() {
-      if (!appData.webhookUrl) return alert('Inserisci prima un URL di Webhook!');
-      inviaDiscordEmbedVisita({
-        codice: "CRI-TEST",
-        nome: "Mario Rossi (TEST)",
-        discord: "@test_user",
-        tipo: "Test Webhook",
-        dataPreferita: "Oggi",
-        orarioPreferito: "Adesso",
-        note: "Messaggio di prova dal gestore CRI RP.",
-        dataInvio: new Date().toLocaleString('it-IT')
-      });
-      alert('Messaggio di prova inviato su Discord!');
+    function testWebhook(tipo) {
+      if (tipo === 'generale') {
+        if (!appData.webhookUrl) return alert('Inserisci prima un URL di Webhook Generale!');
+        inviaDiscordEmbedVisita({
+          codice: "CRI-TEST",
+          nome: "Mario Rossi (TEST)",
+          discord: "@test_user",
+          tipo: "Test Webhook Generale",
+          dataPreferita: "Oggi",
+          orarioPreferito: "Adesso",
+          note: "Messaggio di prova dal gestore CRI RP.",
+          dataInvio: new Date().toLocaleString('it-IT')
+        });
+        alert('Messaggio di prova generale inviato su Discord!');
+      } else {
+        if (!appData.webhookRefertiUrl) return alert('Inserisci prima un URL di Webhook Referti!');
+        inviaDiscordEmbedReferto({
+          codice: "REF-TEST",
+          dataEmissione: new Date().toLocaleString('it-IT'),
+          pazienteNome: "Giuseppe Verdi (TEST)",
+          pazienteDiscord: "@test_paziente",
+          tipoCertificato: "Certificato di Prova",
+          esito: "IDONEO / FAVOREVOLE 🟢",
+          medicoNome: "Dott. Test",
+          testoNote: "Test invio canale dedicato referti."
+        });
+        alert('Messaggio di prova referti inviato su Discord!');
+      }
     }
 
     // AUTH OPERATORE
@@ -1218,6 +1472,12 @@
       const op = sessioneCorrente.user;
       document.getElementById('op-welcome-name').textContent = 'Benvenuto, ' + op.nome;
       document.getElementById('op-badge-ruolo').textContent = op.ruolo;
+      
+      // Auto-compilazione dati emittente referto
+      document.getElementById('ref-medico-nome').value = op.nome;
+      if (!document.getElementById('ref-testo-note').value) {
+        document.getElementById('ref-testo-note').value = appData.bozzaRefertoText || '';
+      }
 
       if (op.provvisoria) {
         document.getElementById('banner-pass-provvisoria').classList.remove('hidden');
@@ -1294,8 +1554,7 @@
           op.turni.push(nuovoTurno);
 
           if (opInDb) {
-            if (!opInDb.turni) opInDb.turni = [];
-            opInDb.turni.push(nuovoTurno);
+            opInDb.turni = op.turni;
             opInDb.inServizio = false;
             opInDb.inizioTurno = null;
           }
