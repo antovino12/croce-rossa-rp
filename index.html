@@ -20,7 +20,7 @@
     .dark body { background-color: #0f172a; color: #f8fafc; }
     .dark .bg-white { background-color: #1e293b !important; color: #f8fafc !important; }
     .dark .bg-gray-50 { background-color: #0f172a !important; color: #f8fafc !important; }
-    .dark .bg-gray-100 { background-color: #1e293b !important; color: #f8fafc !important; }
+    .dark .bg-gray-100 { background-color: #0f172a !important; color: #f8fafc !important; }
     .dark .text-gray-800 { color: #f1f5f9 !important; }
     .dark .text-gray-700 { color: #e2e8f0 !important; }
     .dark .text-gray-600 { color: #cbd5e1 !important; }
@@ -737,7 +737,9 @@
       measurementId: "G-3E125VB0QB"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
 
     // Dati Applicazione
@@ -783,7 +785,6 @@
       }
     }
 
-    // Helper: Estrazione Numero dal Prezzo
     function estraiValoreNumericoPrezzo(prezzoStr) {
       if (!prezzoStr) return 0;
       const num = parseFloat(prezzoStr.toString().replace(/[^0-9.,]/g, '').replace(',', '.'));
@@ -845,8 +846,12 @@
 
     function showSection(secId) {
       const sezioni = ['home', 'prenota', 'farmacia', 'listino', 'login-op', 'dash-op', 'login-admin', 'dash-admin'];
-      sezioni.forEach(s => document.getElementById('sec-' + s).classList.add('hidden'));
-      document.getElementById('sec-' + secId).classList.remove('hidden');
+      sezioni.forEach(s => {
+        const el = document.getElementById('sec-' + s);
+        if (el) el.classList.add('hidden');
+      });
+      const target = document.getElementById('sec-' + secId);
+      if (target) target.classList.remove('hidden');
 
       if (secId === 'farmacia') renderFarmaciaPubblica();
       if (secId === 'listino') renderListinoPubblico();
@@ -855,13 +860,15 @@
     }
 
     function quickBook(tipo) {
-      document.getElementById('prenota-tipo').value = tipo;
+      const selectTipo = document.getElementById('prenota-tipo');
+      if (selectTipo) selectTipo.value = tipo;
       showSection('prenota');
     }
 
-    // VERIFICA STATO GENERALE
     function verificaStatoGenerale() {
-      const cod = document.getElementById('check-codice-input').value.trim().toUpperCase();
+      const inputEl = document.getElementById('check-codice-input');
+      if (!inputEl) return;
+      const cod = inputEl.value.trim().toUpperCase();
       const box = document.getElementById('esito-codice');
       box.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-amber-100', 'text-amber-800', 'bg-red-100', 'text-red-800', 'bg-blue-100', 'text-blue-800');
 
@@ -909,7 +916,6 @@
       box.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Nessuna pratica o certificato trovato con il codice <strong>${cod}</strong>.`;
     }
 
-    // SALVATAGGIO PRENOTAZIONE VISITA
     async function salvaPrenotazione(e) {
       e.preventDefault();
       const codiceUnivoco = 'CRI-' + Math.floor(1000 + Math.random() * 9000);
@@ -967,9 +973,9 @@
       }
     }
 
-    // LISTINO PREZZI PUBBLICO
     function renderListinoPubblico() {
       const container = document.getElementById('contenitore-listino-pubblico');
+      if (!container) return;
       if (!appData.listinoPrezzi || appData.listinoPrezzi.length === 0) {
         container.innerHTML = `<p class="text-gray-500 text-center py-6">Nessun listino prezzi configurato.</p>`;
         return;
@@ -999,9 +1005,9 @@
       `).join('');
     }
 
-    // FARMACIA - CATALOGO MULTI-PRODOTTO
     function renderFarmaciaPubblica() {
       const container = document.getElementById('catalogo-farmaci-pubblico');
+      if (!container) return;
       if (!appData.farmacia || appData.farmacia.length === 0) {
         container.innerHTML = `<p class="text-gray-500 col-span-3 py-4 text-center">Nessun farmaco inserito nel catalogo.</p>`;
         return;
@@ -1038,7 +1044,8 @@
         }
       });
 
-      document.getElementById('carrello-totale-preview').textContent = `${totaleComplessivo} €`;
+      const previewEl = document.getElementById('carrello-totale-preview');
+      if (previewEl) previewEl.textContent = `${totaleComplessivo} €`;
     }
 
     async function confermaOrdineMultiploFarmacia(e) {
@@ -1143,9 +1150,9 @@
       }
     }
 
-    // CERTIFICATI ANAMNESTICI (OPERATORE)
     function applicaBozzaAdmin() {
-      document.getElementById('cert-note').value = appData.bozzaNoteAdmin || '';
+      const noteEl = document.getElementById('cert-note');
+      if (noteEl) noteEl.value = appData.bozzaNoteAdmin || '';
     }
 
     async function emettiCertificatoAnamnestico(e) {
@@ -1250,7 +1257,6 @@
       alert('Messaggio di prova inviato sul canale Anamnestici!');
     }
 
-    // ADMIN - GESTIONE LISTINO PREZZI
     function aggiungiVoceListino(e) {
       e.preventDefault();
       const nuovaVoce = {
@@ -1273,7 +1279,6 @@
       renderAdmin();
     }
 
-    // ADMIN - GESTIONE FARMACO
     function aggiungiFarmaco(e) {
       e.preventDefault();
       const nuovo = {
@@ -1311,7 +1316,6 @@
       renderAdmin();
     }
 
-    // AUTH ADMIN
     function loginAdmin(e) {
       e.preventDefault();
       const u = document.getElementById('admin-user').value;
@@ -1326,134 +1330,154 @@
     }
 
     function renderAdmin() {
-      document.getElementById('discord-webhook-url').value = appData.webhookUrl || '';
-      document.getElementById('discord-webhook-anamnestici-url').value = appData.webhookAnamnesticiUrl || '';
-      document.getElementById('admin-bozza-note').value = appData.bozzaNoteAdmin || '';
+      const webhookInput = document.getElementById('discord-webhook-url');
+      const webhookAnaInput = document.getElementById('discord-webhook-anamnestici-url');
+      const bozzaInput = document.getElementById('admin-bozza-note');
 
-      document.getElementById('stat-prenotazioni').textContent = appData.prenotazioni.length;
-      document.getElementById('stat-ordini-farmacia').textContent = appData.ordiniFarmacia.length;
-      document.getElementById('stat-op-servizio').textContent = appData.operatori.filter(o => o.inServizio).length;
+      if (webhookInput) webhookInput.value = appData.webhookUrl || '';
+      if (webhookAnaInput) webhookAnaInput.value = appData.webhookAnamnesticiUrl || '';
+      if (bozzaInput) bozzaInput.value = appData.bozzaNoteAdmin || '';
+
+      const statPren = document.getElementById('stat-prenotazioni');
+      const statOrd = document.getElementById('stat-ordini-farmacia');
+      const statOpServ = document.getElementById('stat-op-servizio');
+      const statOreTot = document.getElementById('stat-ore-totali');
+
+      if (statPren) statPren.textContent = appData.prenotazioni.length;
+      if (statOrd) statOrd.textContent = appData.ordiniFarmacia.length;
+      if (statOpServ) statOpServ.textContent = appData.operatori.filter(o => o.inServizio).length;
 
       let totaleSecondiTutti = 0;
       appData.operatori.forEach(o => {
         if (o.turni) o.turni.forEach(t => totaleSecondiTutti += (t.durataSecondi || 0));
       });
-      document.getElementById('stat-ore-totali').textContent = formattaTempoPreciso(totaleSecondiTutti);
+      if (statOreTot) statOreTot.textContent = formattaTempoPreciso(totaleSecondiTutti);
 
       const tbodyListino = document.getElementById('lista-listino-admin');
-      tbodyListino.innerHTML = appData.listinoPrezzi.map(l => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="p-2 font-bold text-gray-700">${l.categoria}</td>
-          <td class="p-2">${l.nome}</td>
-          <td class="p-2 font-bold text-cri-red">${l.prezzo}</td>
-          <td class="p-2 text-right">
-            <button onclick="eliminaVoceListino(${l.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-700">Elimina</button>
-          </td>
-        </tr>
-      `).join('');
+      if (tbodyListino) {
+        tbodyListino.innerHTML = appData.listinoPrezzi.map(l => `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-2 font-bold text-gray-700">${l.categoria}</td>
+            <td class="p-2">${l.nome}</td>
+            <td class="p-2 font-bold text-cri-red">${l.prezzo}</td>
+            <td class="p-2 text-right">
+              <button onclick="eliminaVoceListino(${l.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-700">Elimina</button>
+            </td>
+          </tr>
+        `).join('');
+      }
 
       const tbodyFarm = document.getElementById('lista-farmaci-admin');
-      tbodyFarm.innerHTML = appData.farmacia.map(f => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="p-2 font-bold">${f.nome}</td>
-          <td class="p-2 text-blue-600 font-semibold">${f.prezzo}</td>
-          <td class="p-2 text-xs text-gray-600">${f.descrizione || '-'}</td>
-          <td class="p-2 text-right">
-            <button onclick="eliminaFarmaco(${f.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-700">Elimina</button>
-          </td>
-        </tr>
-      `).join('');
+      if (tbodyFarm) {
+        tbodyFarm.innerHTML = appData.farmacia.map(f => `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-2 font-bold">${f.nome}</td>
+            <td class="p-2 text-blue-600 font-semibold">${f.prezzo}</td>
+            <td class="p-2 text-xs text-gray-600">${f.descrizione || '-'}</td>
+            <td class="p-2 text-right">
+              <button onclick="eliminaFarmaco(${f.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-700">Elimina</button>
+            </td>
+          </tr>
+        `).join('');
+      }
 
       const tbodyOrd = document.getElementById('lista-ordini-farmacia-admin');
-      tbodyOrd.innerHTML = appData.ordiniFarmacia.map(o => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="p-2 font-mono font-bold text-xs text-blue-600">${o.codice}</td>
-          <td class="p-2 text-xs text-gray-500">${o.data}</td>
-          <td class="p-2 font-bold">${o.nome}</td>
-          <td class="p-2 text-indigo-600 font-semibold">${o.discord}</td>
-          <td class="p-2 text-xs font-semibold">${o.prodottiStr || o.farmaco || '-'}</td>
-          <td class="p-2 text-xs font-bold text-green-600">${o.totaleInGame || '-'}</td>
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${o.stato === 'In Consegna' ? 'bg-blue-100 text-blue-800' : (o.stato === 'Consegnato' ? 'bg-green-100 text-green-800' : (o.stato === 'Annullato' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'))}">${o.stato}</span></td>
-          <td class="p-2 text-right space-x-1">
-            <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'In Consegna')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">In Consegna</button>
-            <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'Consegnato')" class="bg-green-600 text-white text-xs px-2 py-1 rounded">Consegna</button>
-            <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'Annullato')" class="bg-amber-600 text-white text-xs px-2 py-1 rounded">Annulla</button>
-            <button onclick="eliminaOrdineFarmacia(${o.id})" class="bg-gray-400 text-white text-xs px-2 py-1 rounded">x</button>
-          </td>
-        </tr>
-      `).join('');
+      if (tbodyOrd) {
+        tbodyOrd.innerHTML = appData.ordiniFarmacia.map(o => `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-2 font-mono font-bold text-xs text-blue-600">${o.codice}</td>
+            <td class="p-2 text-xs text-gray-500">${o.data}</td>
+            <td class="p-2 font-bold">${o.nome}</td>
+            <td class="p-2 text-indigo-600 font-semibold">${o.discord}</td>
+            <td class="p-2 text-xs font-semibold">${o.prodottiStr || o.farmaco || '-'}</td>
+            <td class="p-2 text-xs font-bold text-green-600">${o.totaleInGame || '-'}</td>
+            <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${o.stato === 'In Consegna' ? 'bg-blue-100 text-blue-800' : (o.stato === 'Consegnato' ? 'bg-green-100 text-green-800' : (o.stato === 'Annullato' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'))}">${o.stato}</span></td>
+            <td class="p-2 text-right space-x-1">
+              <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'In Consegna')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">In Consegna</button>
+              <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'Consegnato')" class="bg-green-600 text-white text-xs px-2 py-1 rounded">Consegna</button>
+              <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'Annullato')" class="bg-amber-600 text-white text-xs px-2 py-1 rounded">Annulla</button>
+              <button onclick="eliminaOrdineFarmacia(${o.id})" class="bg-gray-400 text-white text-xs px-2 py-1 rounded">x</button>
+            </td>
+          </tr>
+        `).join('');
+      }
 
       const tbodyCert = document.getElementById('lista-certificati-admin');
-      if (!appData.certificatiAnamnestici || appData.certificatiAnamnestici.length === 0) {
-        tbodyCert.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-gray-500">Nessun certificato anamnestico emesso.</td></tr>`;
-      } else {
-        tbodyCert.innerHTML = appData.certificatiAnamnestici.map(c => {
-          let pallino = '🟡';
-          let badgeColor = 'bg-amber-100 text-amber-800';
-          if (c.esito === 'Idoneo') { pallino = '🟢'; badgeColor = 'bg-green-100 text-green-800'; }
-          else if (c.esito === 'Non Idoneo') { pallino = '🔴'; badgeColor = 'bg-red-100 text-red-800'; }
+      if (tbodyCert) {
+        if (!appData.certificatiAnamnestici || appData.certificatiAnamnestici.length === 0) {
+          tbodyCert.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-gray-500">Nessun certificato anamnestico emesso.</td></tr>`;
+        } else {
+          tbodyCert.innerHTML = appData.certificatiAnamnestici.map(c => {
+            let pallino = '🟡';
+            let badgeColor = 'bg-amber-100 text-amber-800';
+            if (c.esito === 'Idoneo') { pallino = '🟢'; badgeColor = 'bg-green-100 text-green-800'; }
+            else if (c.esito === 'Non Idoneo') { pallino = '🔴'; badgeColor = 'bg-red-100 text-red-800'; }
+
+            return `
+              <tr class="border-b hover:bg-gray-50">
+                <td class="p-2 font-mono font-bold text-xs text-cri-red">${c.codice}</td>
+                <td class="p-2 text-xs text-gray-500">${c.data}</td>
+                <td class="p-2 font-bold">${c.paziente}</td>
+                <td class="p-2 text-indigo-600 font-semibold">${c.discord}</td>
+                <td class="p-2 text-xs">${c.tipo}</td>
+                <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${badgeColor}">${pallino} ${c.esito}</span></td>
+                <td class="p-2 text-right">
+                  <button onclick="eliminaCertificatoAnamnestico(${c.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded">Elimina</button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      const tbodyOp = document.getElementById('lista-operatori');
+      if (tbodyOp) {
+        tbodyOp.innerHTML = appData.operatori.map(o => {
+          let secOp = 0;
+          if (o.turni) o.turni.forEach(t => secOp += (t.durataSecondi || 0));
+          const tempoFormattato = formattaTempoPreciso(secOp);
 
           return `
             <tr class="border-b hover:bg-gray-50">
-              <td class="p-2 font-mono font-bold text-xs text-cri-red">${c.codice}</td>
-              <td class="p-2 text-xs text-gray-500">${c.data}</td>
-              <td class="p-2 font-bold">${c.paziente}</td>
-              <td class="p-2 text-indigo-600 font-semibold">${c.discord}</td>
-              <td class="p-2 text-xs">${c.tipo}</td>
-              <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${badgeColor}">${pallino} ${c.esito}</span></td>
-              <td class="p-2 text-right">
-                <button onclick="eliminaCertificatoAnamnestico(${c.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded">Elimina</button>
+              <td class="p-2 font-semibold">${o.nome}</td>
+              <td class="p-2">${o.user}</td>
+              <td class="p-2"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold">${o.ruolo}</span></td>
+              <td class="p-2">${o.provvisoria ? '<span class="text-amber-600 font-bold text-xs">Provvisoria</span>' : '<span class="text-green-600 text-xs">Definitiva</span>'}</td>
+              <td class="p-2 font-mono font-bold text-xs text-indigo-700">${tempoFormattato}</td>
+              <td class="p-2 text-right space-x-1">
+                <button onclick="modificaRuoloOp(${o.id})" class="bg-blue-600 text-white text-xs px-2 py-1 rounded" title="Promuovi o Modifica Ruolo"><i class="fa-solid fa-user-pen mr-1"></i> Promuovi</button>
+                <button onclick="apriModalOre(${o.id})" class="bg-amber-600 text-white text-xs px-2 py-1 rounded" title="Aggiungi o Rimuovi Ore"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Gestisci Ore</button>
+                <button onclick="apriStoricoTurni(${o.id})" class="bg-indigo-600 text-white text-xs px-2 py-1 rounded" title="Storico Turni">Storico</button>
+                <button onclick="resetPassOp(${o.id})" class="bg-amber-500 text-white text-xs px-2 py-1 rounded">Pass</button>
+                <button onclick="eliminaOp(${o.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded">x</button>
               </td>
             </tr>
           `;
         }).join('');
       }
 
-      const tbodyOp = document.getElementById('lista-operatori');
-      tbodyOp.innerHTML = appData.operatori.map(o => {
-        let secOp = 0;
-        if (o.turni) o.turni.forEach(t => secOp += (t.durataSecondi || 0));
-        const tempoFormattato = formattaTempoPreciso(secOp);
-
-        return `
+      const tbodyPre = document.getElementById('lista-prenotazioni');
+      if (tbodyPre) {
+        tbodyPre.innerHTML = appData.prenotazioni.map(p => `
           <tr class="border-b hover:bg-gray-50">
-            <td class="p-2 font-semibold">${o.nome}</td>
-            <td class="p-2">${o.user}</td>
-            <td class="p-2"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold">${o.ruolo}</span></td>
-            <td class="p-2">${o.provvisoria ? '<span class="text-amber-600 font-bold text-xs">Provvisoria</span>' : '<span class="text-green-600 text-xs">Definitiva</span>'}</td>
-            <td class="p-2 font-mono font-bold text-xs text-indigo-700">${tempoFormattato}</td>
+            <td class="p-2 font-mono font-bold text-xs text-blue-600">${p.codice || '-'}</td>
+            <td class="p-2 text-xs text-gray-500">${p.dataInvio || '-'}</td>
+            <td class="p-2 font-bold">${p.nome}</td>
+            <td class="p-2 text-indigo-600 font-semibold">${p.discord}</td>
+            <td class="p-2 text-xs">${p.tipo}</td>
+            <td class="p-2 text-xs">${p.dataPreferita || '-'} <br><span class="text-gray-500 font-semibold">${p.orarioPreferito || p.fasciaOraria || ''}</span></td>
+            <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${p.stato === 'Accettata' ? 'bg-blue-100 text-blue-800' : (p.stato === 'Completata' ? 'bg-green-100 text-green-800' : (p.stato === 'Rifiutata' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'))}">${p.stato}</span></td>
             <td class="p-2 text-right space-x-1">
-              <button onclick="modificaRuoloOp(${o.id})" class="bg-blue-600 text-white text-xs px-2 py-1 rounded" title="Promuovi o Modifica Ruolo"><i class="fa-solid fa-user-pen mr-1"></i> Promuovi</button>
-              <button onclick="apriModalOre(${o.id})" class="bg-amber-600 text-white text-xs px-2 py-1 rounded" title="Aggiungi o Rimuovi Ore"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Gestisci Ore</button>
-              <button onclick="apriStoricoTurni(${o.id})" class="bg-indigo-600 text-white text-xs px-2 py-1 rounded" title="Storico Turni">Storico</button>
-              <button onclick="resetPassOp(${o.id})" class="bg-amber-500 text-white text-xs px-2 py-1 rounded">Pass</button>
-              <button onclick="eliminaOp(${o.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded">x</button>
+              <button onclick="cambiaStatoPrenotazione(${p.id}, 'Accettata')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">Accetta</button>
+              <button onclick="cambiaStatoPrenotazione(${p.id}, 'Completata')" class="bg-green-600 text-white text-xs px-2 py-1 rounded">Completa</button>
+              <button onclick="cambiaStatoPrenotazione(${p.id}, 'Rifiutata')" class="bg-amber-600 text-white text-xs px-2 py-1 rounded">Rifiuta</button>
+              <button onclick="eliminaPrenotazione(${p.id})" class="bg-gray-400 text-white text-xs px-2 py-1 rounded">x</button>
             </td>
           </tr>
-        `;
-      }).join('');
-
-      const tbodyPre = document.getElementById('lista-prenotazioni');
-      tbodyPre.innerHTML = appData.prenotazioni.map(p => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="p-2 font-mono font-bold text-xs text-blue-600">${p.codice || '-'}</td>
-          <td class="p-2 text-xs text-gray-500">${p.dataInvio || '-'}</td>
-          <td class="p-2 font-bold">${p.nome}</td>
-          <td class="p-2 text-indigo-600 font-semibold">${p.discord}</td>
-          <td class="p-2 text-xs">${p.tipo}</td>
-          <td class="p-2 text-xs">${p.dataPreferita || '-'} <br><span class="text-gray-500 font-semibold">${p.orarioPreferito || p.fasciaOraria || ''}</span></td>
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${p.stato === 'Accettata' ? 'bg-blue-100 text-blue-800' : (p.stato === 'Completata' ? 'bg-green-100 text-green-800' : (p.stato === 'Rifiutata' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'))}">${p.stato}</span></td>
-          <td class="p-2 text-right space-x-1">
-            <button onclick="cambiaStatoPrenotazione(${p.id}, 'Accettata')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">Accetta</button>
-            <button onclick="cambiaStatoPrenotazione(${p.id}, 'Completata')" class="bg-green-600 text-white text-xs px-2 py-1 rounded">Completa</button>
-            <button onclick="cambiaStatoPrenotazione(${p.id}, 'Rifiutata')" class="bg-amber-600 text-white text-xs px-2 py-1 rounded">Rifiuta</button>
-            <button onclick="eliminaPrenotazione(${p.id})" class="bg-gray-400 text-white text-xs px-2 py-1 rounded">x</button>
-          </td>
-        </tr>
-      `).join('');
+        `).join('');
+      }
     }
 
-    // GESTIONE ORE OPERATORE (MODALE ADMIN)
     function apriModalOre(opId) {
       const op = appData.operatori.find(o => o.id === opId);
       if (!op) return;
@@ -1629,7 +1653,6 @@
       alert('Bozza predefinita note anamnestiche aggiornata con successo!');
     }
 
-    // AUTH OPERATORE
     function loginOperatore(e) {
       e.preventDefault();
       const u = document.getElementById('op-user').value;
@@ -1645,14 +1668,18 @@
     }
 
     function renderOpDashboard() {
+      if (!sessioneCorrente || sessioneCorrente.tipo !== 'operatore') return;
       const op = sessioneCorrente.user;
-      document.getElementById('op-welcome-name').textContent = 'Benvenuto, ' + op.nome;
-      document.getElementById('op-badge-ruolo').textContent = op.ruolo;
+      
+      const nameEl = document.getElementById('op-welcome-name');
+      const ruoloEl = document.getElementById('op-badge-ruolo');
+      if (nameEl) nameEl.textContent = 'Benvenuto, ' + op.nome;
+      if (ruoloEl) ruoloEl.textContent = op.ruolo;
 
-      if (op.provvisoria) {
-        document.getElementById('banner-pass-provvisoria').classList.remove('hidden');
-      } else {
-        document.getElementById('banner-pass-provvisoria').classList.add('hidden');
+      const banner = document.getElementById('banner-pass-provvisoria');
+      if (banner) {
+        if (op.provvisoria) banner.classList.remove('hidden');
+        else banner.classList.add('hidden');
       }
 
       const btnIn = document.getElementById('btn-in-servizio');
@@ -1660,50 +1687,52 @@
       const badgeStato = document.getElementById('op-stato-badge');
 
       if (op.inServizio) {
-        badgeStato.textContent = 'In Servizio';
-        badgeStato.className = 'bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded';
-        btnIn.disabled = true;
-        btnIn.classList.add('opacity-50');
-        btnOut.disabled = false;
-        btnOut.classList.remove('opacity-50');
+        if (badgeStato) {
+          badgeStato.textContent = 'In Servizio';
+          badgeStato.className = 'bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded';
+        }
+        if (btnIn) { btnIn.disabled = true; btnIn.classList.add('opacity-50'); }
+        if (btnOut) { btnOut.disabled = false; btnOut.classList.remove('opacity-50'); }
         avviaTimer();
       } else {
-        badgeStato.textContent = 'Fuori Servizio';
-        badgeStato.className = 'bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded';
-        btnIn.disabled = false;
-        btnIn.classList.remove('opacity-50');
-        btnOut.disabled = true;
-        btnOut.classList.add('opacity-50');
+        if (badgeStato) {
+          badgeStato.textContent = 'Fuori Servizio';
+          badgeStato.className = 'bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded';
+        }
+        if (btnIn) { btnIn.disabled = false; btnIn.classList.remove('opacity-50'); }
+        if (btnOut) { btnOut.disabled = true; btnOut.classList.add('opacity-50'); }
         fermaTimer();
       }
 
-      if (!document.getElementById('cert-note').value) {
-        applicaBozzaAdmin();
-      }
+      applicaBozzaAdmin();
 
       const tbodyOpStorico = document.getElementById('lista-storico-op-personale');
       let totaleSecondiOp = 0;
 
-      if (!op.turni || op.turni.length === 0) {
-        tbodyOpStorico.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-500">Nessun turno salvato fino ad ora.</td></tr>`;
-      } else {
-        tbodyOpStorico.innerHTML = op.turni.map((t, index) => {
-          totaleSecondiOp += (t.durataSecondi || 0);
-          return `
-            <tr class="border-b hover:bg-gray-50">
-              <td class="p-2 font-bold text-xs text-gray-400">#${index + 1}</td>
-              <td class="p-2 text-xs">${t.inizio}</td>
-              <td class="p-2 text-xs">${t.fine}</td>
-              <td class="p-2 font-mono font-bold text-xs text-green-600">${formattaTempoPreciso(t.durataSecondi)}</td>
-            </tr>
-          `;
-        }).join('');
+      if (tbodyOpStorico) {
+        if (!op.turni || op.turni.length === 0) {
+          tbodyOpStorico.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-500">Nessun turno salvato fino ad ora.</td></tr>`;
+        } else {
+          tbodyOpStorico.innerHTML = op.turni.map((t, index) => {
+            totaleSecondiOp += (t.durataSecondi || 0);
+            return `
+              <tr class="border-b hover:bg-gray-50">
+                <td class="p-2 font-bold text-xs text-gray-400">#${index + 1}</td>
+                <td class="p-2 text-xs">${t.inizio}</td>
+                <td class="p-2 text-xs">${t.fine}</td>
+                <td class="p-2 font-mono font-bold text-xs text-green-600">${formattaTempoPreciso(t.durataSecondi)}</td>
+              </tr>
+            `;
+          }).join('');
+        }
       }
 
-      document.getElementById('op-ore-totali-badge').textContent = `Totale: ${formattaTempoPreciso(totaleSecondiOp)}`;
+      const oreBadge = document.getElementById('op-ore-totali-badge');
+      if (oreBadge) oreBadge.textContent = `Totale: ${formattaTempoPreciso(totaleSecondiOp)}`;
     }
 
     function toggleServizio(stato) {
+      if (!sessioneCorrente || sessioneCorrente.tipo !== 'operatore') return;
       const op = sessioneCorrente.user;
       const opInDb = appData.operatori.find(o => o.id === op.id);
 
@@ -1721,7 +1750,6 @@
 
         const durataSecondi = Math.floor((Date.now() - op.inizioTurno) / 1000);
         
-        // Resetta immediatamente i flag per evitare qualsiasi doppio click o rientro multiplo
         op.inServizio = false;
         op.inizioTurno = null;
         if (opInDb) {
@@ -1740,7 +1768,7 @@
           op.turni.push(nuovoTurno);
 
           if (opInDb) {
-            opInDb.turni = op.turni; // Sostituzione diretta per prevenire array duplicati
+            opInDb.turni = op.turni;
           }
         }
       }
@@ -1757,13 +1785,15 @@
         const h = String(Math.floor(diff / 3600)).padStart(2, '0');
         const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
         const s = String(diff % 60).padStart(2, '0');
-        document.getElementById('timer-display').textContent = `${h}:${m}:${s}`;
+        const timerEl = document.getElementById('timer-display');
+        if (timerEl) timerEl.textContent = `${h}:${m}:${s}`;
       }, 1000);
     }
 
     function fermaTimer() {
       if (timerInterval) clearInterval(timerInterval);
-      document.getElementById('timer-display').textContent = "00:00:00";
+      const timerEl = document.getElementById('timer-display');
+      if (timerEl) timerEl.textContent = "00:00:00";
     }
 
     function apriModalCambioPass() { document.getElementById('modal-cambio-pass').classList.remove('hidden'); }
