@@ -46,6 +46,7 @@
       <div class="flex items-center space-x-2 flex-wrap" id="nav-buttons">
         <button onclick="showSection('home')" class="hover:bg-red-700 px-3 py-2 rounded text-sm transition"><i class="fa-solid fa-house mr-1"></i> Home</button>
         <button onclick="showSection('prenota')" class="hover:bg-red-700 px-3 py-2 rounded text-sm transition"><i class="fa-solid fa-calendar-plus mr-1"></i> Prenota Visita</button>
+        <button onclick="showSection('listino')" class="hover:bg-red-700 px-3 py-2 rounded text-sm transition"><i class="fa-solid fa-tags mr-1"></i> Listino Prezzi</button>
         <button onclick="showSection('farmacia')" class="hover:bg-red-700 px-3 py-2 rounded text-sm transition"><i class="fa-solid fa-pills mr-1"></i> Farmacia</button>
         <button onclick="showSection('login-op')" class="bg-white text-red-600 font-bold px-3 py-2 rounded text-sm hover:bg-gray-100 transition shadow-sm"><i class="fa-solid fa-user-nurse mr-1"></i> Area Operatori</button>
         <button onclick="showSection('login-admin')" class="bg-gray-800 text-white px-3 py-2 rounded text-sm hover:bg-gray-900 transition"><i class="fa-solid fa-user-shield mr-1"></i> Admin</button>
@@ -72,6 +73,7 @@
         <p class="text-gray-600 max-w-2xl mx-auto">Benvenuto nel portale ufficiale. Qui puoi prenotare le tue visite mediche specialistiche, richiedere i certificati anamnestici ed ordinare farmaci presso la nostra Farmacia Sanitaria.</p>
         <div class="mt-6 flex justify-center space-x-4 flex-wrap gap-2">
           <button onclick="showSection('prenota')" class="bg-cri-red text-white font-bold px-6 py-3 rounded-lg shadow-md hover:bg-red-700 transition"><i class="fa-solid fa-notes-medical mr-2"></i> Prenota Visita / Certificato</button>
+          <button onclick="showSection('listino')" class="bg-gray-800 text-white font-bold px-6 py-3 rounded-lg shadow-md hover:bg-gray-900 transition"><i class="fa-solid fa-tags mr-2"></i> Visualizza Listino Prezzi</button>
           <button onclick="showSection('farmacia')" class="bg-blue-600 text-white font-bold px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 transition"><i class="fa-solid fa-pills mr-2"></i> Ordina in Farmacia</button>
         </div>
       </div>
@@ -201,11 +203,38 @@
       </div>
     </section>
 
-    <!-- SEZIONE PUBBLICA FARMACIA / ORDINI -->
+    <!-- SEZIONE LISTINO PREZZI PUBBLICO -->
+    <section id="sec-listino" class="hidden space-y-6">
+      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-cri-red">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center"><i class="fa-solid fa-tags text-cri-red mr-2"></i> Listino Prezzi Ufficiale CRI</h2>
+        <p class="text-gray-600 text-sm">Consulta i costi ufficiali stabiliti dalla Croce Rossa Italiana per visite, certificati e prestazioni sanitarie.</p>
+      </div>
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-gray-100 text-gray-700 border-b">
+              <th class="p-3">Servizio / Prestazione</th>
+              <th class="p-3">Categoria</th>
+              <th class="p-3 text-right">Prezzo Ufficiale</th>
+            </tr>
+          </thead>
+          <tbody id="tabella-listino-pubblico">
+            <!-- Popolato via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SEZIONE PUBBLICA FARMACIA / ORDINI CON CARRELLO MULTIPLO -->
     <section id="sec-farmacia" class="hidden space-y-6">
-      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-600">
-        <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center"><i class="fa-solid fa-prescription-bottle-medical text-blue-600 mr-2"></i> Farmacia Sanitaria CRI</h2>
-        <p class="text-gray-600 text-sm">Seleziona i farmaci o presidi medici disponibili ed effettua l'ordine. Visualizzerai subito il totale esatto da pagare in-game.</p>
+      <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-600 flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800 mb-1 flex items-center"><i class="fa-solid fa-prescription-bottle-medical text-blue-600 mr-2"></i> Farmacia Sanitaria CRI</h2>
+          <p class="text-gray-600 text-sm">Aggiungi più prodotti al carrello ed effettua un ordine unico.</p>
+        </div>
+        <button onclick="apriModalCarrello()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-lg shadow transition flex items-center">
+          <i class="fa-solid fa-cart-shopping mr-2"></i> Visualizza Carrello (<span id="badge-count-carrello">0</span>)
+        </button>
       </div>
 
       <!-- Catalogo Farmaci -->
@@ -419,6 +448,41 @@
         </div>
       </div>
 
+      <!-- GESTIONE LISTINO PREZZI (ADMIN) -->
+      <div class="bg-white p-6 rounded-lg shadow space-y-4">
+        <h3 class="font-bold text-gray-800 text-lg border-b pb-2"><i class="fa-solid fa-tags text-cri-red mr-2"></i> Gestione Listino Prezzi Ufficiale</h3>
+        <form onsubmit="aggiungiVoceListino(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded border">
+          <div>
+            <label class="block text-xs font-bold text-gray-600">Titolo Servizio / Prestazione</label>
+            <input type="text" id="listino-titolo" required placeholder="Es. Visita Medica Semplice" class="w-full border p-2 rounded text-sm mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600">Categoria</label>
+            <input type="text" id="listino-categoria" required placeholder="Es. Visite / Certificati" class="w-full border p-2 rounded text-sm mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600">Prezzo</label>
+            <input type="text" id="listino-prezzo" required placeholder="Es. 100€" class="w-full border p-2 rounded text-sm mt-1">
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="w-full bg-cri-red text-white font-bold py-2 rounded text-sm hover:bg-red-700 transition"><i class="fa-solid fa-plus mr-1"></i> Aggiungi Voce</button>
+          </div>
+        </form>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr class="bg-gray-100 text-gray-700 border-b">
+                <th class="p-2">Servizio</th>
+                <th class="p-2">Categoria</th>
+                <th class="p-2">Prezzo</th>
+                <th class="p-2 text-right">Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="lista-listino-admin"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- GESTIONE FARMACIA (ADMIN) -->
       <div class="bg-white p-6 rounded-lg shadow space-y-4">
         <h3 class="font-bold text-gray-800 text-lg border-b pb-2"><i class="fa-solid fa-pills text-blue-600 mr-2"></i> Gestione Catalogo Farmacia</h3>
@@ -466,7 +530,7 @@
                 <th class="p-2">Data</th>
                 <th class="p-2">Nome RP</th>
                 <th class="p-2">Tag Discord</th>
-                <th class="p-2">Farmaco &amp; Qta</th>
+                <th class="p-2">Prodotti &amp; Qta</th>
                 <th class="p-2">Totale In-Game</th>
                 <th class="p-2">Stato</th>
                 <th class="p-2 text-right">Azioni</th>
@@ -572,43 +636,33 @@
 
   </main>
 
-  <!-- Modal Ordina Farmaco con Calcolo Prezzo In-Game -->
-  <div id="modal-ordina-farmaco" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4">
-      <h3 class="text-lg font-bold text-gray-800 flex items-center"><i class="fa-solid fa-cart-shopping text-blue-600 mr-2"></i> Completa Ordine Farmaco</h3>
-      <form onsubmit="confermaOrdineFarmaco(event)" class="space-y-3">
-        <input type="hidden" id="ordina-farmaco-nome-hidden">
-        <input type="hidden" id="ordina-farmaco-prezzo-unitario-hidden">
-        <div>
-          <label class="block text-xs font-bold text-gray-600">Farmaco Selezionato</label>
-          <input type="text" id="ordina-farmaco-display" disabled class="w-full border p-2 rounded text-sm mt-1 bg-gray-100 font-bold">
-        </div>
+  <!-- Modal Carrello / Ordine Farmacia Multiplo -->
+  <div id="modal-carrello" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 space-y-4">
+      <h3 class="text-lg font-bold text-gray-800 flex items-center"><i class="fa-solid fa-cart-shopping text-blue-600 mr-2"></i> Carrello Farmacia &amp; Checkout</h3>
+      <div id="contenuto-carrello" class="max-h-48 overflow-y-auto border rounded p-2 text-sm divide-y">
+        <!-- Popolato via JS -->
+      </div>
+      <div class="bg-blue-50 border border-blue-200 p-3 rounded flex justify-between items-center">
+        <span class="text-xs text-blue-800 font-bold uppercase">Totale Ordine In-Game:</span>
+        <div id="carrello-totale-display" class="text-xl font-black text-blue-700">0 €</div>
+      </div>
+      <form onsubmit="confermaOrdineMultiplo(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-gray-600">Nome e Cognome RP</label>
-          <input type="text" id="ordina-nome" required class="w-full border p-2 rounded text-sm mt-1">
+          <input type="text" id="ordine-mult-nome" required class="w-full border p-2 rounded text-sm mt-1">
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600">Tag Discord</label>
-          <input type="text" id="ordina-discord" required placeholder="@utente" class="w-full border p-2 rounded text-sm mt-1">
+          <input type="text" id="ordine-mult-discord" required placeholder="@utente" class="w-full border p-2 rounded text-sm mt-1">
         </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-600">Quantità</label>
-          <input type="number" id="ordina-qta" value="1" min="1" max="50" required oninput="aggiornaCalcoloTotaleFarmaco()" class="w-full border p-2 rounded text-sm mt-1">
-        </div>
-        
-        <!-- Box Calcolo Prezzo In-Game -->
-        <div class="bg-blue-50 border border-blue-200 p-3 rounded text-center">
-          <span class="text-xs text-blue-800 uppercase font-bold tracking-wider block">Totale da Pagare In-Game</span>
-          <div id="ordina-totale-in-game-display" class="text-2xl font-black text-blue-700 mt-0.5">0 €</div>
-        </div>
-
         <div>
           <label class="block text-xs font-bold text-gray-600">Note per la Consegna</label>
-          <textarea id="ordina-note" rows="2" placeholder="Specifiche o luogo di ritiro..." class="w-full border p-2 rounded text-sm mt-1"></textarea>
+          <textarea id="ordine-mult-note" rows="2" placeholder="Specifiche o luogo di ritiro..." class="w-full border p-2 rounded text-sm mt-1"></textarea>
         </div>
         <div class="flex justify-end space-x-2 pt-2">
-          <button type="button" onclick="chiudiModalOrdinaFarmaco()" class="px-3 py-1.5 border rounded text-sm hover:bg-gray-100">Annulla</button>
-          <button type="submit" class="bg-blue-600 text-white font-bold px-4 py-1.5 rounded text-sm hover:bg-blue-700 transition">Invia Ordine</button>
+          <button type="button" onclick="chiudiModalCarrello()" class="px-3 py-1.5 border rounded text-sm hover:bg-gray-100">Annulla</button>
+          <button type="submit" class="bg-blue-600 text-white font-bold px-4 py-1.5 rounded text-sm hover:bg-blue-700 transition">Invia Ordine Multiplo</button>
         </div>
       </form>
     </div>
@@ -726,9 +780,15 @@
         { id: 2, nome: 'Morfina 10mg', prezzo: '150€', descrizione: 'Analgesico ospedaliero per forti traumi.' }
       ],
       ordiniFarmacia: [],
-      certificatiAnamnestici: []
+      certificatiAnamnestici: [],
+      listinoPrezzi: [
+        { id: 1, titolo: 'Visita Medica Semplice', categoria: 'Visite', prezzo: '50€' },
+        { id: 2, titolo: 'Visita Psicologica', categoria: 'Visite', prezzo: '80€' },
+        { id: 3, titolo: 'Certificato Anamnestico Porto d\'Armi', categoria: 'Certificati', prezzo: '200€' }
+      ]
     };
 
+    let carrelloFarmacia = [];
     let sessioneCorrente = null;
     let timerInterval = null;
 
@@ -784,6 +844,7 @@
         if (data.farmacia) appData.farmacia = Object.values(data.farmacia);
         if (data.ordiniFarmacia) appData.ordiniFarmacia = Object.values(data.ordiniFarmacia);
         if (data.certificatiAnamnestici) appData.certificatiAnamnestici = Object.values(data.certificatiAnamnestici);
+        if (data.listinoPrezzi) appData.listinoPrezzi = Object.values(data.listinoPrezzi);
       } else {
         salvaTuttoCloud();
       }
@@ -794,6 +855,7 @@
       }
 
       renderFarmaciaPubblica();
+      renderListinoPubblico();
 
       const currentSec = document.querySelector('main > section:not(.hidden)');
       if (currentSec) {
@@ -807,11 +869,12 @@
     }
 
     function showSection(secId) {
-      const sezioni = ['home', 'prenota', 'farmacia', 'login-op', 'dash-op', 'login-admin', 'dash-admin'];
+      const sezioni = ['home', 'prenota', 'listino', 'farmacia', 'login-op', 'dash-op', 'login-admin', 'dash-admin'];
       sezioni.forEach(s => document.getElementById('sec-' + s).classList.add('hidden'));
       document.getElementById('sec-' + secId).classList.remove('hidden');
 
       if (secId === 'farmacia') renderFarmaciaPubblica();
+      if (secId === 'listino') renderListinoPubblico();
       if (secId === 'dash-admin') renderAdmin();
       if (secId === 'dash-op') renderOpDashboard();
     }
@@ -850,7 +913,7 @@
           if (o.stato === 'Annullato') colorClass = 'bg-red-100 text-red-800';
 
           box.classList.add(...colorClass.split(' '));
-          box.innerHTML = `<i class="fa-solid fa-pills mr-1"></i> Ordine Farmacia <strong>${o.codice}</strong> (${o.farmaco} x${o.qta}) - Totale: <strong>${o.totaleInGame || o.prezzoUnitario || '-'}</strong> - Stato: <span class="uppercase font-bold">${o.stato}</span>`;
+          box.innerHTML = `<i class="fa-solid fa-pills mr-1"></i> Ordine Farmacia <strong>${o.codice}</strong> - Totale: <strong>${o.totaleInGame || '-'}</strong> - Stato: <span class="uppercase font-bold">${o.stato}</span>`;
           return;
         }
       } else if (cod.startsWith('ANA-')) {
@@ -862,7 +925,7 @@
           else if (c.esito === 'Non Idoneo') { colorClass = 'bg-red-100 text-red-800'; pallino = '🔴'; }
 
           box.classList.add(...colorClass.split(' '));
-          box.innerHTML = `<i class="fa-solid fa-file-medical mr-1"></i> Certificato Anamnestico <strong>${c.codice}</strong> (${c.tipo}) per <strong>${c.paziente}</strong> - Esito: <strong>${pallino} ${c.esito}</strong> (Emesso da:${c.operatore})`;
+          box.innerHTML = `<i class="fa-solid fa-file-medical mr-1"></i> Certificato Anamnestico <strong>${c.codice}</strong> (${c.tipo}) per <strong>${c.paziente}</strong> - Esito: <strong>${pallino}${c.esito}</strong>`;
           return;
         }
       }
@@ -929,7 +992,24 @@
       }
     }
 
-    // FARMACIA - CATALOGO E ORDINI CON CALCOLO TOTALE
+    // LISTINO PREZZI PUBBLICO
+    function renderListinoPubblico() {
+      const tbody = document.getElementById('tabella-listino-pubblico');
+      if (!appData.listinoPrezzi || appData.listinoPrezzi.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-500">Nessuna voce presente nel listino prezzi.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = appData.listinoPrezzi.map(item => `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="p-3 font-bold text-gray-800">${item.titolo}</td>
+          <td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded">${item.categoria}</span></td>
+          <td class="p-3 text-right font-black text-cri-red">${item.prezzo}</td>
+        </tr>
+      `).join('');
+    }
+
+    // FARMACIA - CARRELLO MULTIPLO
     function renderFarmaciaPubblica() {
       const container = document.getElementById('catalogo-farmaci-pubblico');
       if (!appData.farmacia || appData.farmacia.length === 0) {
@@ -946,57 +1026,93 @@
             </div>
             <p class="text-gray-600 text-xs mb-4">${f.descrizione || 'Nessuna descrizione.'}</p>
           </div>
-          <button onclick="apriModalOrdinaFarmaco('${f.nome}', '${f.prezzo}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm transition flex items-center justify-center">
-            <i class="fa-solid fa-cart-plus mr-2"></i> Ordina Farmaco
+          <button onclick="aggiungiAlCarrello('${f.nome}', '${f.prezzo}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-sm transition flex items-center justify-center">
+            <i class="fa-solid fa-cart-plus mr-2"></i> Aggiungi al Carrello
           </button>
         </div>
       `).join('');
+
+      document.getElementById('badge-count-carrello').textContent = carrelloFarmacia.reduce((acc, item) => acc + item.qta, 0);
     }
 
-    function apriModalOrdinaFarmaco(nomeFarmaco, prezzoUnitario) {
-      document.getElementById('ordina-farmaco-nome-hidden').value = nomeFarmaco;
-      document.getElementById('ordina-farmaco-prezzo-unitario-hidden').value = prezzoUnitario;
-      document.getElementById('ordina-farmaco-display').value = `${nomeFarmaco} (${prezzoUnitario})`;
-      document.getElementById('ordina-qta').value = 1;
-      
-      aggiornaCalcoloTotaleFarmaco();
-      document.getElementById('modal-ordina-farmaco').classList.remove('hidden');
+    function aggiungiAlCarrello(nome, prezzo) {
+      const esistente = carrelloFarmacia.find(item => item.nome === nome);
+      if (esistente) {
+        esistente.qta += 1;
+      } else {
+        carrelloFarmacia.push({ nome, prezzo, qta: 1 });
+      }
+      renderFarmaciaPubblica();
+      alert(`"${nome}" aggiunto al carrello!`);
     }
 
-    function aggiornaCalcoloTotaleFarmaco() {
-      const prezzoUnitarioStr = document.getElementById('ordina-farmaco-prezzo-unitario-hidden').value;
-      const qta = parseInt(document.getElementById('ordina-qta').value) || 1;
-      const val = estraiValoreNumericoPrezzo(prezzoUnitarioStr);
-      const totale = val * qta;
+    function apriModalCarrello() {
+      const container = document.getElementById('contenuto-carrello');
+      if (carrelloFarmacia.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 text-center py-2">Il tuo carrello è vuoto.</p>`;
+        document.getElementById('carrello-totale-display').textContent = '0 €';
+      } else {
+        let totaleComplessivo = 0;
+        container.innerHTML = carrelloFarmacia.map((item, idx) => {
+          const valUnitario = estraiValoreNumericoPrezzo(item.prezzo);
+          const subtotale = valUnitario * item.qta;
+          totaleComplessivo += subtotale;
+          const sim = item.prezzo.includes('$') ? '$' : '€';
 
-      const sim = prezzoUnitarioStr.includes('$') ? '$' : '€';
-      document.getElementById('ordina-totale-in-game-display').textContent = `${totale}${sim}`;
+          return `
+            <div class="py-2 flex justify-between items-center">
+              <div>
+                <span class="font-bold text-gray-800">${item.nome}</span>
+                <div class="text-xs text-gray-500">Prezzo unitario: ${item.prezzo} \vert{} Qta:${item.qta}</div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="font-mono font-bold text-blue-600">${subtotale}${sim}</span>
+                <button onclick="rimuoviDaCarrello(${idx})" class="text-red-600 hover:text-red-800 text-xs px-1.5 py-0.5 border border-red-200 rounded">x</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        const sim = carrelloFarmacia[0].prezzo.includes('$') ? '$' : '€';
+        document.getElementById('carrello-totale-display').textContent = `${totaleComplessivo}${sim}`;
+      }
+      document.getElementById('modal-carrello').classList.remove('hidden');
     }
 
-    function chiudiModalOrdinaFarmaco() {
-      document.getElementById('modal-ordina-farmaco').classList.add('hidden');
+    function rimuoviDaCarrello(idx) {
+      carrelloFarmacia.splice(idx, 1);
+      apriModalCarrello();
+      renderFarmaciaPubblica();
     }
 
-    async function confermaOrdineFarmaco(e) {
+    function chiudiModalCarrello() {
+      document.getElementById('modal-carrello').classList.add('hidden');
+    }
+
+    async function confermaOrdineMultiplo(e) {
       e.preventDefault();
+      if (carrelloFarmacia.length === 0) return alert('Il carrello è vuoto!');
+
       const codFarm = 'FAR-' + Math.floor(1000 + Math.random() * 9000);
-      const prezzoUnitarioStr = document.getElementById('ordina-farmaco-prezzo-unitario-hidden').value;
-      const qta = parseInt(document.getElementById('ordina-qta').value) || 1;
-      const val = estraiValoreNumericoPrezzo(prezzoUnitarioStr);
-      const sim = prezzoUnitarioStr.includes('$') ? '$' : '€';
-      const totaleCalcolatoStr = `${val * qta}${sim}`;
+      let totaleComplessivo = 0;
+      let riepilogoProdottiStr = carrelloFarmacia.map(i => {
+        const sub = estraiValoreNumericoPrezzo(i.prezzo) * i.qta;
+        totaleComplessivo += sub;
+        return `${i.nome} (x${i.qta})`;
+      }).join(', ');
+
+      const sim = carrelloFarmacia[0].prezzo.includes('$') ? '$' : '€';
+      const totaleStr = `${totaleComplessivo}${sim}`;
 
       const nuovoOrdine = {
         id: Date.now(),
         codice: codFarm,
         data: new Date().toLocaleString('it-IT'),
-        farmaco: document.getElementById('ordina-farmaco-nome-hidden').value,
-        prezzoUnitario: prezzoUnitarioStr,
-        totaleInGame: totaleCalcolatoStr,
-        nome: document.getElementById('ordina-nome').value,
-        discord: document.getElementById('ordina-discord').value,
-        qta: qta,
-        note: document.getElementById('ordina-note').value,
+        prodotti: [...carrelloFarmacia],
+        farmaco: riepilogoProdottiStr,
+        totaleInGame: totaleStr,
+        nome: document.getElementById('ordine-mult-nome').value,
+        discord: document.getElementById('ordine-mult-discord').value,
+        note: document.getElementById('ordine-mult-note').value,
         stato: 'In Attesa'
       };
 
@@ -1007,22 +1123,23 @@
         inviaDiscordEmbedFarmacia(nuovoOrdine);
       }
 
-      alert(`Ordine inviato con successo!\nIL TUO CODICE ORDINE È: ${codFarm}\nTOTALE DA PAGARE IN-GAME:${totaleCalcolatoStr}\nPresenta il codice al personale della Croce Rossa per la consegna.`);
-      chiudiModalOrdinaFarmaco();
+      alert(`Ordine multiplo inviato con successo!\nCODICE ORDINE: ${codFarm}\nTOTALE DA PAGARE IN-GAME:${totaleStr}\nPresenta il codice al personale CRI.`);
+      carrelloFarmacia = [];
+      chiudiModalCarrello();
+      renderFarmaciaPubblica();
       showSection('home');
     }
 
     async function inviaDiscordEmbedFarmacia(o) {
       const payload = {
         embeds: [{
-          title: "💊 Nuovo Ordine Farmacia CRI",
+          title: "💊 Nuovo Ordine Multiplo Farmacia CRI",
           color: 3447003,
           fields: [
             { name: "Codice Ordine", value: `\`${o.codice}\``, inline: true },
             { name: "Nome RP", value: o.nome, inline: true },
             { name: "Tag Discord", value: o.discord, inline: true },
-            { name: "Farmaco Ordinato", value: o.farmaco, inline: true },
-            { name: "Quantità", value: `${o.qta} pz`, inline: true },
+            { name: "Prodotti Ordinati", value: o.farmaco, inline: false },
             { name: "💰 TOTALE DA PAGARE IN-GAME", value: `**${o.totaleInGame}**`, inline: false },
             { name: "Note Consegna", value: o.note || "Nessuna nota", inline: false }
           ],
@@ -1080,8 +1197,8 @@
     async function inviaDiscordEmbedAnamnestico(c, webhookUrl) {
       let pallino = '🟡';
       let colorEmbed = 16776960; // Giallo
-      if (c.esito === 'Idoneo') { pallino = '🟢'; colorEmbed = 3066993; } // Verde
-      else if (c.esito === 'Non Idoneo') { pallino = '🔴'; colorEmbed = 15158332; } // Rosso
+      if (c.esito === 'Idoneo') { pallino = '🟢'; colorEmbed = 3066993; }
+      else if (c.esito === 'Non Idoneo') { pallino = '🔴'; colorEmbed = 15158332; }
 
       const payload = {
         embeds: [{
@@ -1146,6 +1263,28 @@
         operatore: "Dott. Test"
       }, target);
       alert('Messaggio di prova inviato sul canale Anamnestici!');
+    }
+
+    // ADMIN - GESTIONE LISTINO
+    function aggiungiVoceListino(e) {
+      e.preventDefault();
+      const nuovo = {
+        id: Date.now(),
+        titolo: document.getElementById('listino-titolo').value,
+        categoria: document.getElementById('listino-categoria').value,
+        prezzo: document.getElementById('listino-prezzo').value
+      };
+      appData.listinoPrezzi.push(nuovo);
+      salvaTuttoCloud();
+      renderAdmin();
+      alert('Voce aggiunta al listino prezzi!');
+      e.target.reset();
+    }
+
+    function eliminaVoceListino(id) {
+      appData.listinoPrezzi = appData.listinoPrezzi.filter(item => item.id !== id);
+      salvaTuttoCloud();
+      renderAdmin();
     }
 
     // ADMIN - GESTIONE FARMACO
@@ -1216,6 +1355,19 @@
       });
       document.getElementById('stat-ore-totali').textContent = formattaTempoPreciso(totaleSecondiTutti);
 
+      // Render Listino Admin
+      const tbodyListino = document.getElementById('lista-listino-admin');
+      tbodyListino.innerHTML = appData.listinoPrezzi.map(item => `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="p-2 font-bold">${item.titolo}</td>
+          <td class="p-2">${item.categoria}</td>
+          <td class="p-2 text-cri-red font-semibold">${item.prezzo}</td>
+          <td class="p-2 text-right">
+            <button onclick="eliminaVoceListino(${item.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-700">Elimina</button>
+          </td>
+        </tr>
+      `).join('');
+
       // Render Farmaci Admin
       const tbodyFarm = document.getElementById('lista-farmaci-admin');
       tbodyFarm.innerHTML = appData.farmacia.map(f => `
@@ -1237,8 +1389,8 @@
           <td class="p-2 text-xs text-gray-500">${o.data}</td>
           <td class="p-2 font-bold">${o.nome}</td>
           <td class="p-2 text-indigo-600 font-semibold">${o.discord}</td>
-          <td class="p-2 text-xs">${o.farmaco} (<strong>${o.qta} pz</strong>)</td>
-          <td class="p-2 text-xs font-bold text-green-600">${o.totaleInGame || o.prezzoUnitario || '-'}</td>
+          <td class="p-2 text-xs">${o.farmaco}</td>
+          <td class="p-2 text-xs font-bold text-green-600">${o.totaleInGame || '-'}</td>
           <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${o.stato === 'In Consegna' ? 'bg-blue-100 text-blue-800' : (o.stato === 'Consegnato' ? 'bg-green-100 text-green-800' : (o.stato === 'Annullato' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'))}">${o.stato}</span></td>
           <td class="p-2 text-right space-x-1">
             <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'In Consegna')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">In Consegna</button>
@@ -1276,7 +1428,7 @@
         }).join('');
       }
 
-      // Render Operatori con Tempo Preciso e Pulsante Modifica Ore
+      // Render Operatori
       const tbodyOp = document.getElementById('lista-operatori');
       tbodyOp.innerHTML = appData.operatori.map(o => {
         let secOp = 0;
@@ -1377,7 +1529,6 @@
       }
     }
 
-    // MODIFICA RUOLO / PROMOZIONE OPERATORE
     function modificaRuoloOp(id) {
       const op = appData.operatori.find(o => o.id === id);
       if (op) {
@@ -1391,7 +1542,6 @@
       }
     }
 
-    // STORICO TURNI OPERATORE (ADMIN MODAL)
     function apriStoricoTurni(opId) {
       const op = appData.operatori.find(o => o.id === opId);
       if (!op) return;
