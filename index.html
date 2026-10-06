@@ -418,17 +418,24 @@
       <!-- Configurazione Discord Webhooks -->
       <div class="bg-white p-6 rounded-lg shadow space-y-4 border-l-4 border-indigo-600">
         <h3 class="font-bold text-gray-800 flex items-center"><i class="fa-brands fa-discord text-indigo-600 mr-2 text-xl"></i> Configurazione Canali Discord Webhook</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-xs font-bold text-gray-600 mb-1">Webhook Prenotazioni / Farmacia</label>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Webhook Nuove Prenotazioni / Farmacia</label>
             <div class="flex gap-2">
               <input type="url" id="discord-webhook-url" placeholder="https://discord.com/api/webhooks/..." class="flex-1 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500">
               <button onclick="salvaWebhook()" class="bg-indigo-600 text-white px-3 py-2 rounded font-bold text-xs hover:bg-indigo-700 transition">Salva</button>
-              <button onclick="testWebhook()" class="bg-gray-200 text-gray-800 px-3 py-2 rounded font-bold text-xs hover:bg-gray-300 transition">Test</button>
             </div>
           </div>
           <div>
-            <label class="block text-xs font-bold text-gray-600 mb-1">Webhook Certificati Anamnestici (Canale Dedicato)</label>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Webhook Conferme Prenotazioni (Cittadini)</label>
+            <div class="flex gap-2">
+              <input type="url" id="discord-webhook-conferme-url" placeholder="https://discord.com/api/webhooks/..." class="flex-1 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <button onclick="salvaWebhookConferme()" class="bg-indigo-600 text-white px-3 py-2 rounded font-bold text-xs hover:bg-indigo-700 transition">Salva</button>
+              <button onclick="testWebhookConferme()" class="bg-gray-200 text-gray-800 px-3 py-2 rounded font-bold text-xs hover:bg-gray-300 transition">Test</button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Webhook Certificati Anamnestici</label>
             <div class="flex gap-2">
               <input type="url" id="discord-webhook-anamnestici-url" placeholder="https://discord.com/api/webhooks/..." class="flex-1 border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500">
               <button onclick="salvaWebhookAnamnestici()" class="bg-indigo-600 text-white px-3 py-2 rounded font-bold text-xs hover:bg-indigo-700 transition">Salva</button>
@@ -769,6 +776,7 @@
       adminUser: 'admin',
       adminPass: 'admin123',
       webhookUrl: '',
+      webhookConfermeUrl: '',
       webhookAnamnesticiUrl: '',
       bozzaNoteAdmin: 'Esame obiettivo regolare, assenza di patologie di rilievo, idoneità rilasciata con riserva.',
       operatori: [
@@ -837,6 +845,7 @@
         if (data.adminUser) appData.adminUser = data.adminUser;
         if (data.adminPass) appData.adminPass = data.adminPass;
         if (data.webhookUrl !== undefined) appData.webhookUrl = data.webhookUrl;
+        if (data.webhookConfermeUrl !== undefined) appData.webhookConfermeUrl = data.webhookConfermeUrl;
         if (data.webhookAnamnesticiUrl !== undefined) appData.webhookAnamnesticiUrl = data.webhookAnamnesticiUrl;
         if (data.bozzaNoteAdmin !== undefined) appData.bozzaNoteAdmin = data.bozzaNoteAdmin;
         if (data.operatori) appData.operatori = Object.values(data.operatori).map(o => ({ ...o, turni: o.turni ? Object.values(o.turni) : [] }));
@@ -870,8 +879,12 @@
 
     function showSection(secId) {
       const sezioni = ['home', 'prenota', 'listino', 'farmacia', 'login-op', 'dash-op', 'login-admin', 'dash-admin'];
-      sezioni.forEach(s => document.getElementById('sec-' + s).classList.add('hidden'));
-      document.getElementById('sec-' + secId).classList.remove('hidden');
+      sezioni.forEach(s => {
+        const el = document.getElementById('sec-' + s);
+        if (el) el.classList.add('hidden');
+      });
+      const targetSec = document.getElementById('sec-' + secId);
+      if (targetSec) targetSec.classList.remove('hidden');
 
       if (secId === 'farmacia') renderFarmaciaPubblica();
       if (secId === 'listino') renderListinoPubblico();
@@ -925,7 +938,7 @@
           else if (c.esito === 'Non Idoneo') { colorClass = 'bg-red-100 text-red-800'; pallino = '🔴'; }
 
           box.classList.add(...colorClass.split(' '));
-          box.innerHTML = `<i class="fa-solid fa-file-medical mr-1"></i> Certificato Anamnestico <strong>${c.codice}</strong> (${c.tipo}) per <strong>${c.paziente}</strong> - Esito: <strong>${pallino} ${c.esito}</strong>`;
+          box.innerHTML = `<i class="fa-solid fa-file-medical mr-1"></i> Certificato Anamnestico <strong>${c.codice}</strong> (${c.tipo}) per <strong>${c.paziente}</strong> - Esito: <strong>${pallino}${c.esito}</strong>`;
           return;
         }
       }
@@ -992,9 +1005,48 @@
       }
     }
 
+    // INVIO DISCORD CONFERME PRENOTAZIONI AI CITTADINI
+    async function inviaDiscordConfermaPrenotazione(p) {
+      const targetWebhook = appData.webhookConfermeUrl || appData.webhookUrl;
+      if (!targetWebhook) return;
+
+      let colorEmbed = 3447003; 
+      let titoloStato = "ℹ️ Aggiornamento Stato Prenotazione CRI";
+      if (p.stato === 'Completata') { colorEmbed = 3066993; titoloStato = "✅ Prenotazione Completata / Visitata"; }
+      else if (p.stato === 'Rifiutata') { colorEmbed = 15158332; titoloStato = "❌ Prenotazione Rifiutata / Annullata"; }
+      else if (p.stato === 'Accettata') { colorEmbed = 3447003; titoloStato = "📅 Prenotazione Accettata / Confermata"; }
+
+      const payload = {
+        content: `<@${p.discord.replace('@','')}> Aggiornamento sulla tua richiesta!`,
+        embeds: [{
+          title: titoloStato,
+          color: colorEmbed,
+          fields: [
+            { name: "Codice Pratica", value: `\`${p.codice}\``, inline: true },
+            { name: "Paziente / Richiedente", value: p.nome, inline: true },
+            { name: "Tag Discord", value: p.discord, inline: true },
+            { name: "Prestazione", value: p.tipo, inline: false },
+            { name: "Nuovo Stato", value: `**${p.stato}**`, inline: true }
+          ],
+          footer: { text: "Portale Sanitario CRI RP • Data: " + new Date().toLocaleString('it-IT') }
+        }]
+      };
+
+      try {
+        await fetch(targetWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn("Errore Webhook Conferme:", err);
+      }
+    }
+
     // LISTINO PREZZI PUBBLICO
     function renderListinoPubblico() {
       const tbody = document.getElementById('tabella-listino-pubblico');
+      if (!tbody) return;
       if (!appData.listinoPrezzi || appData.listinoPrezzi.length === 0) {
         tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-500">Nessuna voce presente nel listino prezzi.</td></tr>`;
         return;
@@ -1012,6 +1064,7 @@
     // FARMACIA - CARRELLO MULTIPLO
     function renderFarmaciaPubblica() {
       const container = document.getElementById('catalogo-farmaci-pubblico');
+      if (!container) return;
       if (!appData.farmacia || appData.farmacia.length === 0) {
         container.innerHTML = `<p class="text-gray-500 col-span-3 py-4 text-center">Nessun farmaco inserito nel catalogo.</p>`;
         return;
@@ -1032,7 +1085,8 @@
         </div>
       `).join('');
 
-      document.getElementById('badge-count-carrello').textContent = carrelloFarmacia.reduce((acc, item) => acc + item.qta, 0);
+      const badge = document.getElementById('badge-count-carrello');
+      if (badge) badge.textContent = carrelloFarmacia.reduce((acc, item) => acc + item.qta, 0);
     }
 
     function aggiungiAlCarrello(nome, prezzo) {
@@ -1048,6 +1102,7 @@
 
     function apriModalCarrello() {
       const container = document.getElementById('contenuto-carrello');
+      if (!container) return;
       if (carrelloFarmacia.length === 0) {
         container.innerHTML = `<p class="text-gray-500 text-center py-2">Il tuo carrello è vuoto.</p>`;
         document.getElementById('carrello-totale-display').textContent = '0 €';
@@ -1063,11 +1118,11 @@
             <div class="py-2 flex justify-between items-center">
               <div>
                 <span class="font-bold text-gray-800">${item.nome}</span>
-                <div class="text-xs text-gray-500">Prezzo unitario: ${item.prezzo} | Qta: ${item.qta}</div>
+                <div class="text-xs text-gray-500">Prezzo unitario: ${item.prezzo} \vert{} Qta:${item.qta}</div>
               </div>
               <div class="flex items-center space-x-2">
                 <span class="font-mono font-bold text-blue-600">${subtotale}${sim}</span>
-                <button onclick="rimuoviDaCarrello(${idx})" class="text-red-600 hover:text-red-800 text-xs px-1.5 py-0.5 border border-red-200 rounded">x</button>
+                <button type="button" onclick="rimuoviDaCarrello(${idx})" class="text-red-600 hover:text-red-800 text-xs px-1.5 py-0.5 border border-red-200 rounded">x</button>
               </div>
             </div>
           `;
@@ -1123,7 +1178,7 @@
         inviaDiscordEmbedFarmacia(nuovoOrdine);
       }
 
-      alert(`Ordine multiplo inviato con successo!\nCODICE ORDINE: ${codFarm}\nTOTALE DA PAGARE IN-GAME: ${totaleStr}\nPresenta il codice al personale CRI.`);
+      alert(`Ordine multiplo inviato con successo!\nCODICE ORDINE: ${codFarm}\nTOTALE DA PAGARE IN-GAME:${totaleStr}\nPresenta il codice al personale CRI.`);
       carrelloFarmacia = [];
       chiudiModalCarrello();
       renderFarmaciaPubblica();
@@ -1160,7 +1215,8 @@
 
     // CERTIFICATI ANAMNESTICI (OPERATORE)
     function applicaBozzaAdmin() {
-      document.getElementById('cert-note').value = appData.bozzaNoteAdmin || '';
+      const campo = document.getElementById('cert-note');
+      if (campo) campo.value = appData.bozzaNoteAdmin || '';
     }
 
     async function emettiCertificatoAnamnestico(e) {
@@ -1172,661 +1228,4 @@
       const nuovoCert = {
         id: Date.now(),
         codice: codiceAna,
-        data: new Date().toLocaleString('it-IT'),
-        paziente: document.getElementById('cert-paziente').value,
-        discord: document.getElementById('cert-discord').value,
-        tipo: document.getElementById('cert-tipo').value,
-        esito: esito,
-        note: document.getElementById('cert-note').value,
-        operatore: op.nome
-      };
-
-      appData.certificatiAnamnestici.unshift(nuovoCert);
-      salvaTuttoCloud();
-
-      const webhookTarget = appData.webhookAnamnesticiUrl || appData.webhookUrl;
-      if (webhookTarget) {
-        inviaDiscordEmbedAnamnestico(nuovoCert, webhookTarget);
-      }
-
-      alert(`Certificato anamnestico emesso con successo!\nCODICE CERTIFICATO: ${codiceAna}\nInviato automaticamente sul canale Discord dedicato.`);
-      e.target.reset();
-      applicaBozzaAdmin();
-    }
-
-    async function inviaDiscordEmbedAnamnestico(c, webhookUrl) {
-      let pallino = '🟡';
-      let colorEmbed = 16776960; // Giallo
-      if (c.esito === 'Idoneo') { pallino = '🟢'; colorEmbed = 3066993; }
-      else if (c.esito === 'Non Idoneo') { pallino = '🔴'; colorEmbed = 15158332; }
-
-      const payload = {
-        embeds: [{
-          title: `📋 Certificato Anamnestico Emesso - ${pallino}${c.esito}`,
-          color: colorEmbed,
-          fields: [
-            { name: "Codice Certificato", value: `\`${c.codice}\``, inline: true },
-            { name: "Paziente RP", value: c.paziente, inline: true },
-            { name: "Discord Paziente", value: c.discord, inline: true },
-            { name: "Tipo Certificato", value: c.tipo, inline: false },
-            { name: "Esito", value: `**${pallino} ${c.esito}**`, inline: true },
-            { name: "Medico / Operatore", value: c.operatore, inline: true },
-            { name: "Note / Anamnesi", value: c.note || "Nessuna nota", inline: false }
-          ],
-          footer: { text: "Reparto Sanitario CRI RP • Data: " + c.data }
-        }]
-      };
-
-      try {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      } catch (err) {
-        console.warn("Errore Webhook Discord Anamnestici:", err);
-      }
-    }
-
-    function eliminaCertificatoAnamnestico(id) {
-      appData.certificatiAnamnestici = appData.certificatiAnamnestici.filter(c => c.id !== id);
-      salvaTuttoCloud();
-      renderAdmin();
-    }
-
-    function testWebhook() {
-      if (!appData.webhookUrl) return alert('Inserisci prima un URL di Webhook per Prenotazioni/Farmacia!');
-      inviaDiscordEmbedVisita({
-        codice: "CRI-TEST",
-        nome: "Mario Rossi (TEST)",
-        discord: "@test_user",
-        tipo: "Test Webhook",
-        dataPreferita: "Oggi",
-        orarioPreferito: "Adesso",
-        note: "Messaggio di prova dal gestore CRI RP.",
-        dataInvio: new Date().toLocaleString('it-IT')
-      });
-      alert('Messaggio di prova inviato sul canale Prenotazioni/Farmacia!');
-    }
-
-    function testWebhookAnamnestici() {
-      const target = appData.webhookAnamnesticiUrl || appData.webhookUrl;
-      if (!target) return alert('Inserisci prima un URL di Webhook per i Certificati Anamnestici!');
-      inviaDiscordEmbedAnamnestico({
-        codice: "ANA-TEST",
-        data: new Date().toLocaleString('it-IT'),
-        paziente: "Mario Rossi (TEST)",
-        discord: "@test_user",
-        tipo: "Certificato Anamnestico per Porto d'Armi",
-        esito: "Idoneo",
-        note: "Test invio certificato anamnestico.",
-        operatore: "Dott. Test"
-      }, target);
-      alert('Messaggio di prova inviato sul canale Anamnestici!');
-    }
-
-    // ADMIN - GESTIONE LISTINO
-    function aggiungiVoceListino(e) {
-      e.preventDefault();
-      const nuovo = {
-        id: Date.now(),
-        titolo: document.getElementById('listino-titolo').value,
-        categoria: document.getElementById('listino-categoria').value,
-        prezzo: document.getElementById('listino-prezzo').value
-      };
-      appData.listinoPrezzi.push(nuovo);
-      salvaTuttoCloud();
-      renderAdmin();
-      alert('Voce aggiunta al listino prezzi!');
-      e.target.reset();
-    }
-
-    function eliminaVoceListino(id) {
-      appData.listinoPrezzi = appData.listinoPrezzi.filter(item => item.id !== id);
-      salvaTuttoCloud();
-      renderAdmin();
-    }
-
-    // ADMIN - GESTIONE FARMACO
-    function aggiungiFarmaco(e) {
-      e.preventDefault();
-      const nuovo = {
-        id: Date.now(),
-        nome: document.getElementById('farmaco-nome').value,
-        prezzo: document.getElementById('farmaco-prezzo').value,
-        descrizione: document.getElementById('farmaco-desc').value
-      };
-
-      appData.farmacia.push(nuovo);
-      salvaTuttoCloud();
-      renderAdmin();
-      alert('Farmaco aggiunto al catalogo!');
-      e.target.reset();
-    }
-
-    function eliminaFarmaco(id) {
-      appData.farmacia = appData.farmacia.filter(f => f.id !== id);
-      salvaTuttoCloud();
-      renderAdmin();
-    }
-
-    function cambiaStatoOrdineFarmacia(id, stato) {
-      const o = appData.ordiniFarmacia.find(item => item.id === id);
-      if (o) {
-        o.stato = stato;
-        salvaTuttoCloud();
-        renderAdmin();
-      }
-    }
-
-    function eliminaOrdineFarmacia(id) {
-      appData.ordiniFarmacia = appData.ordiniFarmacia.filter(item => item.id !== id);
-      salvaTuttoCloud();
-      renderAdmin();
-    }
-
-    // AUTH ADMIN
-    function loginAdmin(e) {
-      e.preventDefault();
-      const u = document.getElementById('admin-user').value;
-      const p = document.getElementById('admin-pass').value;
-
-      if (u === appData.adminUser && p === appData.adminPass) {
-        sessioneCorrente = { tipo: 'admin' };
-        showSection('dash-admin');
-      } else {
-        alert('Credenziali Admin non valide!');
-      }
-    }
-
-    function renderAdmin() {
-      document.getElementById('discord-webhook-url').value = appData.webhookUrl || '';
-      document.getElementById('discord-webhook-anamnestici-url').value = appData.webhookAnamnesticiUrl || '';
-      document.getElementById('admin-bozza-note').value = appData.bozzaNoteAdmin || '';
-
-      // Statistiche
-      document.getElementById('stat-prenotazioni').textContent = appData.prenotazioni.length;
-      document.getElementById('stat-ordini-farmacia').textContent = appData.ordiniFarmacia.length;
-      document.getElementById('stat-op-servizio').textContent = appData.operatori.filter(o => o.inServizio).length;
-
-      let totaleSecondiTutti = 0;
-      appData.operatori.forEach(o => {
-        if (o.turni) o.turni.forEach(t => totaleSecondiTutti += (t.durataSecondi || 0));
-      });
-      document.getElementById('stat-ore-totali').textContent = formattaTempoPreciso(totaleSecondiTutti);
-
-      // Render Listino Admin
-      const tbodyListino = document.getElementById('lista-listino-admin');
-      tbodyListino.innerHTML = appData.listinoPrezzi.map(item => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="p-2 font-bold">${item.titolo}</td>
-          <td class="p-2">${item.categoria}</td>
-          <td class="p-2 text-cri-red font-semibold">${item.prezzo}</td>
-          <td class="p-2 text-right">
-            <button onclick="eliminaVoceListino(${item.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-700">Elimina</button>
-          </td>
-        </tr>
-      `).join('');
-
-      // Render Farmaci Admin
-      const tbodyFarm = document.getElementById('lista-farmaci-admin');
-      tbodyFarm.innerHTML = appData.farmacia.map(f => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="p-2 font-bold">${f.nome}</td>
-          <td class="p-2 text-blue-600 font-semibold">${f.prezzo}</td>
-          <td class="p-2 text-xs text-gray-600">${f.descrizione || '-'}</td>
-          <td class="p-2 text-right">
-            <button onclick="eliminaFarmaco(${f.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-700">Elimina</button>
-          </td>
-        </tr>
-      `).join('');
-
-      // Render Ordini Farmacia Admin
-      const tbodyOrd = document.getElementById('lista-ordini-farmacia-admin');
-      tbodyOrd.innerHTML = appData.ordiniFarmacia.map(o => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="p-2 font-mono font-bold text-xs text-blue-600">${o.codice}</td>
-          <td class="p-2 text-xs text-gray-500">${o.data}</td>
-          <td class="p-2 font-bold">${o.nome}</td>
-          <td class="p-2 text-indigo-600 font-semibold">${o.discord}</td>
-          <td class="p-2 text-xs">${o.farmaco}</td>
-          <td class="p-2 text-xs font-bold text-green-600">${o.totaleInGame || '-'}</td>
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${o.stato === 'In Consegna' ? 'bg-blue-100 text-blue-800' : (o.stato === 'Consegnato' ? 'bg-green-100 text-green-800' : (o.stato === 'Annullato' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'))}">${o.stato}</span></td>
-          <td class="p-2 text-right space-x-1">
-            <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'In Consegna')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">In Consegna</button>
-            <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'Consegnato')" class="bg-green-600 text-white text-xs px-2 py-1 rounded">Consegna</button>
-            <button onclick="cambiaStatoOrdineFarmacia(${o.id}, 'Annullato')" class="bg-amber-600 text-white text-xs px-2 py-1 rounded">Annulla</button>
-            <button onclick="eliminaOrdineFarmacia(${o.id})" class="bg-gray-400 text-white text-xs px-2 py-1 rounded">x</button>
-          </td>
-        </tr>
-      `).join('');
-
-      // Render Certificati Anamnestici Admin
-      const tbodyCert = document.getElementById('lista-certificati-admin');
-      if (!appData.certificatiAnamnestici || appData.certificatiAnamnestici.length === 0) {
-        tbodyCert.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-gray-500">Nessun certificato anamnestico emesso.</td></tr>`;
-      } else {
-        tbodyCert.innerHTML = appData.certificatiAnamnestici.map(c => {
-          let pallino = '🟡';
-          let badgeColor = 'bg-amber-100 text-amber-800';
-          if (c.esito === 'Idoneo') { pallino = '🟢'; badgeColor = 'bg-green-100 text-green-800'; }
-          else if (c.esito === 'Non Idoneo') { pallino = '🔴'; badgeColor = 'bg-red-100 text-red-800'; }
-
-          return `
-            <tr class="border-b hover:bg-gray-50">
-              <td class="p-2 font-mono font-bold text-xs text-cri-red">${c.codice}</td>
-              <td class="p-2 text-xs text-gray-500">${c.data}</td>
-              <td class="p-2 font-bold">${c.paziente}</td>
-              <td class="p-2 text-indigo-600 font-semibold">${c.discord}</td>
-              <td class="p-2 text-xs">${c.tipo}</td>
-              <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${badgeColor}">${pallino} ${c.esito}</span></td>
-              <td class="p-2 text-right">
-                <button onclick="eliminaCertificatoAnamnestico(${c.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded">Elimina</button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      }
-
-      // Render Operatori
-      const tbodyOp = document.getElementById('lista-operatori');
-      tbodyOp.innerHTML = appData.operatori.map(o => {
-        let secOp = 0;
-        if (o.turni) o.turni.forEach(t => secOp += (t.durataSecondi || 0));
-        const tempoFormattato = formattaTempoPreciso(secOp);
-
-        return `
-          <tr class="border-b hover:bg-gray-50">
-            <td class="p-2 font-semibold">${o.nome}</td>
-            <td class="p-2">${o.user}</td>
-            <td class="p-2"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold">${o.ruolo}</span></td>
-            <td class="p-2">${o.provvisoria ? '<span class="text-amber-600 font-bold text-xs">Provvisoria</span>' : '<span class="text-green-600 text-xs">Definitiva</span>'}</td>
-            <td class="p-2 font-mono font-bold text-xs text-indigo-700">${tempoFormattato}</td>
-            <td class="p-2 text-right space-x-1">
-              <button onclick="modificaRuoloOp(${o.id})" class="bg-blue-600 text-white text-xs px-2 py-1 rounded" title="Promuovi o Modifica Ruolo"><i class="fa-solid fa-user-pen mr-1"></i> Promuovi</button>
-              <button onclick="apriModalOre(${o.id})" class="bg-amber-600 text-white text-xs px-2 py-1 rounded" title="Aggiungi o Rimuovi Ore"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Gestisci Ore</button>
-              <button onclick="apriStoricoTurni(${o.id})" class="bg-indigo-600 text-white text-xs px-2 py-1 rounded" title="Storico Turni">Storico</button>
-              <button onclick="resetPassOp(${o.id})" class="bg-amber-500 text-white text-xs px-2 py-1 rounded">Pass</button>
-              <button onclick="eliminaOp(${o.id})" class="bg-red-600 text-white text-xs px-2 py-1 rounded">x</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      // Render Prenotazioni Visite
-      const tbodyPre = document.getElementById('lista-prenotazioni');
-      tbodyPre.innerHTML = appData.prenotazioni.map(p => `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="p-2 font-mono font-bold text-xs text-blue-600">${p.codice || '-'}</td>
-          <td class="p-2 text-xs text-gray-500">${p.dataInvio || '-'}</td>
-          <td class="p-2 font-bold">${p.nome}</td>
-          <td class="p-2 text-indigo-600 font-semibold">${p.discord}</td>
-          <td class="p-2 text-xs">${p.tipo}</td>
-          <td class="p-2 text-xs">${p.dataPreferita || '-'} <br><span class="text-gray-500 font-semibold">${p.orarioPreferito || p.fasciaOraria || ''}</span></td>
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${p.stato === 'Accettata' ? 'bg-blue-100 text-blue-800' : (p.stato === 'Completata' ? 'bg-green-100 text-green-800' : (p.stato === 'Rifiutata' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'))}">${p.stato}</span></td>
-          <td class="p-2 text-right space-x-1">
-            <button onclick="cambiaStatoPrenotazione(${p.id}, 'Accettata')" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">Accetta</button>
-            <button onclick="cambiaStatoPrenotazione(${p.id}, 'Completata')" class="bg-green-600 text-white text-xs px-2 py-1 rounded">Completa</button>
-            <button onclick="cambiaStatoPrenotazione(${p.id}, 'Rifiutata')" class="bg-amber-600 text-white text-xs px-2 py-1 rounded">Rifiuta</button>
-            <button onclick="eliminaPrenotazione(${p.id})" class="bg-gray-400 text-white text-xs px-2 py-1 rounded">x</button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // GESTIONE ORE OPERATORE (MODALE ADMIN)
-    function apriModalOre(opId) {
-      const op = appData.operatori.find(o => o.id === opId);
-      if (!op) return;
-      document.getElementById('ore-op-id-hidden').value = op.id;
-      document.getElementById('titolo-modal-ore').textContent = `Gestisci Ore: ${op.nome}`;
-      document.getElementById('ore-valore').value = 0;
-      document.getElementById('minuti-valore').value = 0;
-      document.getElementById('modal-modifica-ore').classList.remove('hidden');
-    }
-
-    function chiudiModalOre() {
-      document.getElementById('modal-modifica-ore').classList.add('hidden');
-    }
-
-    function confermaModificaOreOp(e) {
-      e.preventDefault();
-      const opId = parseInt(document.getElementById('ore-op-id-hidden').value);
-      const azione = document.getElementById('ore-azione').value;
-      const ore = parseInt(document.getElementById('ore-valore').value) || 0;
-      const minuti = parseInt(document.getElementById('minuti-valore').value) || 0;
-      const secondiTotaliDelta = (ore * 3600) + (minuti * 60);
-
-      const op = appData.operatori.find(o => o.id === opId);
-      if (op) {
-        if (!op.turni) op.turni = [];
-        if (azione === 'aggiungi') {
-          op.turni.push({
-            inizio: 'Modifica Admin',
-            fine: new Date().toLocaleString('it-IT'),
-            durataSecondi: secondiTotaliDelta
-          });
-        } else {
-          op.turni.push({
-            inizio: 'Storno Admin',
-            fine: new Date().toLocaleString('it-IT'),
-            durataSecondi: -secondiTotaliDelta
-          });
-        }
-        salvaTuttoCloud();
-        chiudiModalOre();
-        renderAdmin();
-        alert('Monte ore aggiornato con successo!');
-      }
-    }
-
-    function resettaOreTuttiOp() {
-      if (confirm('⚠️ ATTENZIONE!\nSei sicuro di voler azzerare le ore settimanali di TUTTI gli operatori?')) {
-        appData.operatori.forEach(o => { o.turni = []; });
-        salvaTuttoCloud();
-        renderAdmin();
-        alert('Ore settimanali di tutti gli operatori azzerate con successo!');
-      }
-    }
-
-    function modificaRuoloOp(id) {
-      const op = appData.operatori.find(o => o.id === id);
-      if (op) {
-        const nuovoRuolo = prompt(`Modifica Ruolo / Grado per ${op.nome}\nRuolo Attuale: "${op.ruolo}"`, op.ruolo);
-        if (nuovoRuolo !== null && nuovoRuolo.trim() !== '') {
-          op.ruolo = nuovoRuolo.trim();
-          salvaTuttoCloud();
-          renderAdmin();
-          alert(`Ruolo aggiornato con successo per ${op.nome}!`);
-        }
-      }
-    }
-
-    function apriStoricoTurni(opId) {
-      const op = appData.operatori.find(o => o.id === opId);
-      if (!op) return;
-
-      document.getElementById('titolo-modal-storico').textContent = `Storico Turni: ${op.nome}`;
-      const divContenuto = document.getElementById('contenuto-storico-turni');
-
-      if (!op.turni || op.turni.length === 0) {
-        divContenuto.innerHTML = `<p class="text-gray-500 py-2">Nessun turno registrato per questo operatore.</p>`;
-      } else {
-        divContenuto.innerHTML = op.turni.map(t => {
-          return `
-            <div class="py-2 flex justify-between items-center">
-              <div>
-                <div class="font-bold">Inizio: ${t.inizio}</div>
-                <div class="text-gray-500">Fine: ${t.fine}</div>
-              </div>
-              <div class="font-mono bg-gray-100 p-1 rounded font-bold text-indigo-600">${formattaTempoPreciso(t.durataSecondi)}</div>
-            </div>
-          `;
-        }).join('');
-      }
-
-      document.getElementById('modal-storico-turni').classList.remove('hidden');
-    }
-
-    function chiudiModalStorico() {
-      document.getElementById('modal-storico-turni').classList.add('hidden');
-    }
-
-    function generaPassProvvisoria() {
-      const pass = 'CRI-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-      document.getElementById('nuovo-op-pass').value = pass;
-    }
-
-    function creaOperatore(e) {
-      e.preventDefault();
-      const nuovo = {
-        id: Date.now(),
-        nome: document.getElementById('nuovo-op-nome').value,
-        user: document.getElementById('nuovo-op-user').value,
-        pass: document.getElementById('nuovo-op-pass').value,
-        provvisoria: true,
-        ruolo: document.getElementById('nuovo-op-ruolo').value,
-        inServizio: false,
-        inizioTurno: null,
-        turni: []
-      };
-
-      appData.operatori.push(nuovo);
-      salvaTuttoCloud();
-      renderAdmin();
-      alert('Operatore creato con successo!');
-      e.target.reset();
-    }
-
-    function resetPassOp(id) {
-      const op = appData.operatori.find(o => o.id === id);
-      if (op) {
-        const nuova = 'CRI-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-        op.pass = nuova;
-        op.provvisoria = true;
-        salvaTuttoCloud();
-        renderAdmin();
-        alert(`Nuova password salvata per ${op.nome}: ${nuova}`);
-      }
-    }
-
-    function eliminaOp(id) {
-      if (!confirm('Eliminare l\'operatore?')) return;
-      appData.operatori = appData.operatori.filter(o => o.id !== id);
-      salvaTuttoCloud();
-      renderAdmin();
-    }
-
-    function cambiaStatoPrenotazione(id, stato) {
-      const pre = appData.prenotazioni.find(p => p.id === id);
-      if (pre) {
-        pre.stato = stato;
-        salvaTuttoCloud();
-        renderAdmin();
-      }
-    }
-
-    function eliminaPrenotazione(id) {
-      appData.prenotazioni = appData.prenotazioni.filter(p => p.id !== id);
-      salvaTuttoCloud();
-      renderAdmin();
-    }
-
-    function salvaWebhook() {
-      appData.webhookUrl = document.getElementById('discord-webhook-url').value;
-      salvaTuttoCloud();
-      alert('Webhook Prenotazioni/Farmacia salvato sul Cloud!');
-    }
-
-    function salvaWebhookAnamnestici() {
-      appData.webhookAnamnesticiUrl = document.getElementById('discord-webhook-anamnestici-url').value;
-      salvaTuttoCloud();
-      alert('Webhook Certificati Anamnestici salvato sul Cloud!');
-    }
-
-    function salvaBozzaAdmin() {
-      appData.bozzaNoteAdmin = document.getElementById('admin-bozza-note').value;
-      salvaTuttoCloud();
-      alert('Bozza predefinita note anamnestiche aggiornata con successo!');
-    }
-
-    // AUTH OPERATORE
-    function loginOperatore(e) {
-      e.preventDefault();
-      const u = document.getElementById('op-user').value;
-      const p = document.getElementById('op-pass').value;
-
-      const op = appData.operatori.find(o => o.user === u && o.pass === p);
-      if (op) {
-        sessioneCorrente = { tipo: 'operatore', user: op };
-        showSection('dash-op');
-      } else {
-        alert('Username o Password errati!');
-      }
-    }
-
-    function renderOpDashboard() {
-      const op = sessioneCorrente.user;
-      document.getElementById('op-welcome-name').textContent = 'Benvenuto, ' + op.nome;
-      document.getElementById('op-badge-ruolo').textContent = op.ruolo;
-
-      if (op.provvisoria) {
-        document.getElementById('banner-pass-provvisoria').classList.remove('hidden');
-      } else {
-        document.getElementById('banner-pass-provvisoria').classList.add('hidden');
-      }
-
-      const btnIn = document.getElementById('btn-in-servizio');
-      const btnOut = document.getElementById('btn-out-servizio');
-      const badgeStato = document.getElementById('op-stato-badge');
-
-      if (op.inServizio) {
-        badgeStato.textContent = 'In Servizio';
-        badgeStato.className = 'bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded';
-        btnIn.disabled = true;
-        btnIn.classList.add('opacity-50');
-        btnOut.disabled = false;
-        btnOut.classList.remove('opacity-50');
-        avviaTimer();
-      } else {
-        badgeStato.textContent = 'Fuori Servizio';
-        badgeStato.className = 'bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded';
-        btnIn.disabled = false;
-        btnIn.classList.remove('opacity-50');
-        btnOut.disabled = true;
-        btnOut.classList.add('opacity-50');
-        fermaTimer();
-      }
-
-      if (!document.getElementById('cert-note').value) {
-        applicaBozzaAdmin();
-      }
-
-      const tbodyOpStorico = document.getElementById('lista-storico-op-personale');
-      let totaleSecondiOp = 0;
-
-      if (!op.turni || op.turni.length === 0) {
-        tbodyOpStorico.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-500">Nessun turno salvato fino ad ora.</td></tr>`;
-      } else {
-        tbodyOpStorico.innerHTML = op.turni.map((t, index) => {
-          totaleSecondiOp += (t.durataSecondi || 0);
-          return `
-            <tr class="border-b hover:bg-gray-50">
-              <td class="p-2 font-bold text-xs text-gray-400">#${index + 1}</td>
-              <td class="p-2 text-xs">${t.inizio}</td>
-              <td class="p-2 text-xs">${t.fine}</td>
-              <td class="p-2 font-mono font-bold text-xs text-green-600">${formattaTempoPreciso(t.durataSecondi)}</td>
-            </tr>
-          `;
-        }).join('');
-      }
-
-      document.getElementById('op-ore-totali-badge').textContent = `Totale: ${formattaTempoPreciso(totaleSecondiOp)}`;
-    }
-
-    function toggleServizio(stato) {
-      const op = sessioneCorrente.user;
-      const opInDb = appData.operatori.find(o => o.id === op.id);
-
-      if (stato) {
-        if (op.inServizio) return;
-        const oraAttuale = Date.now();
-        op.inServizio = true;
-        op.inizioTurno = oraAttuale;
-        if (opInDb) {
-          opInDb.inServizio = true;
-          opInDb.inizioTurno = oraAttuale;
-        }
-      } else {
-        if (!op.inServizio || !op.inizioTurno) return;
-
-        const durataSecondi = Math.floor((Date.now() - op.inizioTurno) / 1000);
-        if (durataSecondi > 0) {
-          const nuovoTurno = {
-            inizio: new Date(op.inizioTurno).toLocaleString('it-IT'),
-            fine: new Date().toLocaleString('it-IT'),
-            durataSecondi: durataSecondi
-          };
-
-          if (!op.turni) op.turni = [];
-          op.turni.push(nuovoTurno);
-
-          if (opInDb) {
-            if (!opInDb.turni) opInDb.turni = [];
-            opInDb.turni.push(nuovoTurno);
-          }
-        }
-
-        op.inServizio = false;
-        op.inizioTurno = null;
-        if (opInDb) {
-          opInDb.inServizio = false;
-          opInDb.inizioTurno = null;
-        }
-      }
-
-      salvaTuttoCloud();
-      renderOpDashboard();
-    }
-
-    function avviaTimer() {
-      fermaTimer();
-      timerInterval = setInterval(() => {
-        if (!sessioneCorrente || !sessioneCorrente.user.inizioTurno) return;
-        const diff = Math.floor((Date.now() - sessioneCorrente.user.inizioTurno) / 1000);
-        const h = String(Math.floor(diff / 3600)).padStart(2, '0');
-        const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
-        const s = String(diff % 60).padStart(2, '0');
-        document.getElementById('timer-display').textContent = `${h}:${m}:${s}`;
-      }, 1000);
-    }
-
-    function fermaTimer() {
-      if (timerInterval) clearInterval(timerInterval);
-      document.getElementById('timer-display').textContent = "00:00:00";
-    }
-
-    function apriModalCambioPass() { document.getElementById('modal-cambio-pass').classList.remove('hidden'); }
-    function chiudiModalPass() { document.getElementById('modal-cambio-pass').classList.add('hidden'); }
-
-    function salvaNuovaPasswordOp(e) {
-      e.preventDefault();
-      const nuova = document.getElementById('nuova-pass-op').value;
-      sessioneCorrente.user.pass = nuova;
-      sessioneCorrente.user.provvisoria = false;
-
-      const opInDb = appData.operatori.find(o => o.id === sessioneCorrente.user.id);
-      if (opInDb) {
-        opInDb.pass = nuova;
-        opInDb.provvisoria = false;
-      }
-
-      salvaTuttoCloud();
-      chiudiModalPass();
-      renderOpDashboard();
-      alert('Password aggiornata con successo!');
-    }
-
-    function apriModalCredenzialiAdmin() { 
-      document.getElementById('nuovo-admin-user').value = appData.adminUser;
-      document.getElementById('modal-cred-admin').classList.remove('hidden'); 
-    }
-    function chiudiModalAdmin() { document.getElementById('modal-cred-admin').classList.add('hidden'); }
-
-    function salvaCredenzialiAdmin(e) {
-      e.preventDefault();
-      appData.adminUser = document.getElementById('nuovo-admin-user').value;
-      appData.adminPass = document.getElementById('nuovo-admin-pass').value;
-      salvaTuttoCloud();
-      chiudiModalAdmin();
-      alert('Credenziali Admin aggiornate sul Cloud!');
-    }
-
-    function logout() {
-      sessioneCorrente = null;
-      fermaTimer();
-      showSection('home');
-    }
-  </script>
-</body>
-</html>
+        data: new Date().
